@@ -58,7 +58,7 @@
       cols = newCols; rows = newRows;
       build(Math.max(0, pendingCount));
     }
-    dirty = true;
+    render(); // resizing clears the canvas; repaint now rather than waiting for the next frame
   }
 
   function build(pending) {
@@ -81,7 +81,7 @@
       }
       groups.push(group);
     }
-    dirty = true;
+    render();
   }
 
   function nextFrontier() {
@@ -119,6 +119,8 @@
   }
 
   function render() {
+    dirty = false;
+    if (!canvas.width || !canvas.height) return;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
     for (var i = 0; i < cells.length; i++) {
@@ -256,4 +258,6 @@
 
   sizeMap();
   build(0);
+  if (!canvas.clientWidth) window.addEventListener('load', sizeMap);
+  Orbit.ready.then(sizeMap);
 })();
