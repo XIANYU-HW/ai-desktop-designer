@@ -16,6 +16,10 @@ The point of the skill is fusion: every function must become something that belo
 theme's world (files flying into a scroll, debris captured into orbit, a defragmenter's blocks),
 driven by real data and real progress. Read `references/design-principles.md` before designing.
 
+The bar is a finished piece of art, not a working demo. Users notice "cheap" at once: fallback fonts,
+flat fills, outlines, banding, choppy motion, a browser bubble on top. Design to the craft table in
+design-principles.md, and never show a theme you have not reviewed with your own eyes (step 6).
+
 ## Ground rules
 
 - Speak the user's language. Theme text follows the user's language unless the world calls for another.
@@ -54,20 +58,26 @@ Bundled themes and actions are read from `SKILL_DIR`; a workspace item with the 
    user in a few lines when the design is ambitious.
 4. **Build the theme.** `orbit.py new-theme <id> --from template` (or `--from ink-study`, `deep-orbit`,
    `defrag-95` to start from an example), then edit `~/OrbitDesktop/themes/<id>/`. Follow
-   `references/theme-guide.md`. Open pages reload by themselves when files change.
+   `references/theme-guide.md`. Open pages reload by themselves when files change. Bundle the fonts with
+   `orbit.py fonts <id> --family "…"` instead of loading them from the network.
 5. **Add or tune functions.** Many "new" functions are built-ins with parameters (a button can pass
    `data-orbit-params`); see `references/builtin-actions.md`. For real new behaviour:
    `orbit.py new-action <id>`, implement it per `references/action-guide.md`, then
    `orbit.py validate-action <id>` and `orbit.py run <id> preview`.
-6. **Check your work by looking at it.** `orbit.py validate <id>` then `orbit.py snapshot <id>`
-   and read the PNG (bundled themes are rendered to `~/OrbitDesktop/previews/`, so their shipped previews stay intact). Also snapshot with `--out` at `--size 1366x768` and `--size 2560x1440`. Fix
-   overlaps with the desktop-icon area, unreadable text, empty states and clutter before showing the user.
-   `orbit.py open <id> --window` shows it to the user; `?demo`, `?daypart=night`, `?weather=rain` in the
-   URL preview other states.
+6. **Review it like an art director, with your own eyes.** `orbit.py validate <id>`, then
+   `orbit.py review <id>`: it renders every screen size and state, lets the page measure itself (fonts,
+   fallbacks, overlaps, tiny text, icon and taskbar zones, script errors, network use) and writes a report
+   with a checklist. Open **every** picture it made and answer **every** item in
+   `references/quality-review.md` with what you actually see. Fix what falls short and review again until
+   the findings are clean and every answer is yes. Only then show the user (`orbit.py open <id> --window`).
 7. **Put it on the desktop.** `orbit.py use <id>`, then `orbit.py install`. On Windows this needs Lively
    Wallpaper (`winget install -e --id rocksdanister.LivelyWallpaper`, ask first); on macOS, Plash from the
    App Store (clicks need Plash's Browsing Mode). `install` also starts the helper at sign-in. Tell the
    user how to undo: `orbit.py uninstall`. Details and manual steps: `references/hosts.md`.
+8. **Check the real desktop.** With the user's OK, `orbit.py capture` and look at the picture: the theme at
+   the real resolution behind real icons and the taskbar, and nothing added by the host (a translate bar,
+   a full-screen bubble, a prompt). If you can drive the mouse, hover and click the controls, open any
+   window a function opens, and capture again. Fix and repeat; tell the user what you checked.
 
 ## Commands
 
@@ -78,7 +88,10 @@ Bundled themes and actions are read from `SKILL_DIR`; a workspace item with the 
 | `start` / `stop` / `status` | Run the helper in the background, stop it, show state |
 | `themes`, `use ID`, `gallery` | List, switch, or open the theme gallery |
 | `new-theme ID [--from template\|THEME] [--name N]` | Create a theme in the workspace |
-| `validate [ID...]`, `snapshot ID [--size WxH] [--live] [--out F]` | Check a theme; render it to PNG (demo data by default) |
+| `validate [ID...]`, `snapshot ID [--size WxH] [--live] [--out F] [--query Q]` | Check a theme; render it to PNG (demo data by default) |
+| `review ID [--quick]` | Render every size and state, let the page measure itself, write a report and checklist to work through |
+| `capture [--out F] [--delay S]` | A picture of the real screen, to check the installed desktop (ask the user first) |
+| `fonts ID --family F [--weights 400,600] [--name N] [--chars common-zh] [--script latin\|cjk]` | Bundle subsets of a Google font into the theme |
 | `open [ID] [--window]` | Preview in a full-screen (or normal) browser window |
 | `actions`, `run ACTION [OP] [--param KEY=VALUE ...] [--yes] [--json]` | List actions; run one operation (default `preview`). Prefer repeated `--param` over `--params JSON`: Windows PowerShell strips the quotes inside JSON |
 | `new-action ID`, `validate-action ID` | Create and check a custom action |
@@ -88,7 +101,8 @@ Bundled themes and actions are read from `SKILL_DIR`; a workspace item with the 
 
 ## References
 
-- `references/design-principles.md`: the method for fusing function and aesthetics. Read before designing.
+- `references/design-principles.md`: the method for fusing function and aesthetics, and the craft table. Read before designing.
+- `references/quality-review.md`: the review loop and the checklist every theme must pass before the user sees it.
 - `references/theme-guide.md`: theme folder, theme.json, the SDK (markup bindings, JS API, events, CSS hooks), layout and performance rules, checklist.
 - `references/builtin-actions.md`: what tidy-files, quit-apps and open-path do, their operations and parameters.
 - `references/action-guide.md`: writing a new, safe, cross-platform action.

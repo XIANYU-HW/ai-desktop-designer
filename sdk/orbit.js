@@ -148,6 +148,14 @@
   }
   root.setAttribute('data-os', platform);
   if (!root.getAttribute('lang')) root.setAttribute('lang', lang === 'zh' ? 'zh-CN' : 'en');
+  // A desktop never wants "Translate this page?": the bubble pops up in browser windows the theme opens.
+  root.setAttribute('translate', 'no');
+  if (!doc.querySelector('meta[name="google"]')) {
+    var noTranslate = doc.createElement('meta');
+    noTranslate.name = 'google';
+    noTranslate.content = 'notranslate';
+    doc.head.appendChild(noTranslate);
+  }
 
   // ------------------------------------------------------------------ network
   function api(path, options) {
@@ -661,6 +669,92 @@
       });
     };
     attempt();
+  }
+
+  // ------------------------------------------------------------------ review (orbit.py review)
+  // With ?review the page measures itself after a few seconds and writes a JSON report into the DOM,
+  // which `orbit.py review` reads through a headless browser: fonts that did not load, text set in a
+  // fallback font, overlapping controls, tiny text, text under the desktop icons or the taskbar,
+  // script errors and resources fetched from the network.
+  function fontAvailable(family) {
+    var probe = doc.createElement('canvas').getContext('2d');
+    var sample = 'mmmmmmmmmmlli永字八法WwQq0123';
+    return ['monospace', 'serif', 'sans-serif'].some(function (generic) {
+      probe.font = '72px ' + generic;
+      var base = probe.measureText(sample).width;
+      probe.font = '72px "' + family + '", ' + generic;
+      return probe.measureText(sample).width !== base;
+    });
+  }
+
+  function writeReview(errors) {
+    var vw = global.innerWidth, vh = global.innerHeight;
+    var report = { viewport: [vw, vh], platform: platform, errors: errors.slice(0, 30), fonts: [], families: {}, text: [],
+      overlaps: [], zones: [], offscreen: [], network: [], translate: root.getAttribute('translate') === 'no' };
+    if (doc.fonts && doc.fonts.forEach) {
+      doc.fonts.forEach(function (f) { report.fonts.push({ family: f.family.replace(/["']/g, ''), weight: f.weight, style: f.style, status: f.status }); });
+    }
+    var safeLeft = platform === 'windows' ? 112 : 0, safeRight = platform === 'macos' ? 118 : 0, taskbar = vh * 0.94;
+    function visible(el) {
+      var cs = global.getComputedStyle(el);
+      if (cs.visibility === 'hidden' || cs.display === 'none') return false;
+      for (var n = el; n && n !== root; n = n.parentElement) {
+        if (parseFloat(global.getComputedStyle(n).opacity) < 0.05) return false;
+      }
+      var r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    }
+    function label(el) {
+      var cls = typeof el.className === 'string' && el.className ? '.' + el.className.split(/\s+/)[0] : el.tagName.toLowerCase();
+      return cls + ' "' + (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 24) + '"';
+    }
+    each('body *', function (el) {
+      if (/^(SCRIPT|STYLE|CANVAS|SVG)$/i.test(el.tagName)) return;
+      var own = Array.prototype.some.call(el.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim(); });
+      if (!own || !visible(el)) return;
+      var cs = global.getComputedStyle(el), r = el.getBoundingClientRect(), size = parseFloat(cs.fontSize);
+      var family = cs.fontFamily.split(',')[0].trim().replace(/["']/g, '');
+      if (!Object.prototype.hasOwnProperty.call(report.families, family)) report.families[family] = fontAvailable(family);
+      report.text.push({ el: label(el), size: Math.round(size * 10) / 10, family: family, rect: [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)] });
+      if (r.left < safeLeft || r.right > vw - safeRight) report.zones.push({ el: label(el), zone: 'desktop icons' });
+      if (r.bottom > taskbar) report.zones.push({ el: label(el), zone: 'taskbar / Dock' });
+      if (r.left < -1 || r.top < -1 || r.right > vw + 1 || r.bottom > vh + 1) report.offscreen.push(label(el));
+    });
+    var controls = [];
+    each('[data-orbit-action],[data-orbit-gallery],button,input,textarea,select,[data-orbit-clock],[data-orbit-status]', function (el) {
+      if (visible(el)) controls.push(el);
+    });
+    for (var i = 0; i < controls.length; i++) {
+      for (var j = i + 1; j < controls.length; j++) {
+        if (controls[i].contains(controls[j]) || controls[j].contains(controls[i])) continue;
+        var a = controls[i].getBoundingClientRect(), b = controls[j].getBoundingClientRect();
+        var w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        if (w > 2 && h > 2) report.overlaps.push([label(controls[i]), label(controls[j])]);
+      }
+    }
+    try {
+      performance.getEntriesByType('resource').forEach(function (entry) {
+        var host = new URL(entry.name).hostname;
+        if (host && host !== location.hostname && host !== '127.0.0.1' && host !== 'localhost') report.network.push(entry.name.slice(0, 140));
+      });
+    } catch (_) { /* old engines */ }
+    var out = doc.createElement('script');
+    out.type = 'application/json';
+    out.id = 'orbit-review';
+    out.textContent = JSON.stringify(report).replace(/</g, '\\u003c');
+    doc.body.appendChild(out);
+  }
+
+  if (params.has('review')) {
+    var reviewErrors = [];
+    global.addEventListener('error', function (e) { reviewErrors.push(String(e.message || e)); });
+    global.addEventListener('unhandledrejection', function (e) { reviewErrors.push('promise: ' + String((e.reason && e.reason.message) || e.reason)); });
+    var consoleError = console.error;
+    console.error = function () {
+      reviewErrors.push(Array.prototype.join.call(arguments, ' '));
+      return consoleError.apply(console, arguments);
+    };
+    setTimeout(function () { writeReview(reviewErrors); }, Number(params.get('review')) || 3500);
   }
 
   global.Orbit = Orbit;

@@ -145,6 +145,42 @@ def find_browser() -> Optional[str]:
     return None
 
 
+def quiet_profile(profile: Path, lang: str) -> None:
+    """Make a browser profile used for desktop windows quiet.
+
+    A page in another language than the browser's makes Edge and Chrome pop up a "Translate this
+    page?" bubble in the top-left corner. It steals the focus, comes back on every new window, and
+    on a desktop it looks broken. Turn translation off and accept the user's languages.
+    """
+    prefs_path = Path(profile) / "Default" / "Preferences"
+    prefs = env.read_json(prefs_path, {}) or {}
+    if not isinstance(prefs, dict):
+        prefs = {}
+    prefs.setdefault("translate", {})["enabled"] = False
+    blocked = prefs.setdefault("translate_blocked_languages", [])
+    for code in ("zh-CN", "zh", "en"):
+        if code not in blocked:
+            blocked.append(code)
+    intl = prefs.setdefault("intl", {})
+    if "zh" not in str(intl.get("accept_languages") or ""):
+        intl["accept_languages"] = "zh-CN,zh,en-US,en" if lang.startswith("zh") else "en-US,en,zh-CN,zh"
+    prefs.setdefault("browser", {})["has_seen_welcome_page"] = True
+    prefs.setdefault("profile", {}).update({"exit_type": "Normal", "exited_cleanly": True})
+    env.write_json(prefs_path, prefs)
+
+
+def browser_window_args(browser: str, url: str, profile: Path, lang: str, fullscreen: bool) -> List[str]:
+    """Command line for a chrome-less app window that shows a theme page."""
+    args = [
+        browser, f"--app={url}", f"--user-data-dir={profile}", "--no-first-run", "--no-default-browser-check",
+        "--lang=" + ("zh-CN" if lang.startswith("zh") else "en-US"),
+        "--disable-sync", "--hide-crash-restore-bubble", "--disable-features=Translate,TranslateUI",
+    ]
+    if fullscreen:
+        args.append("--start-fullscreen")
+    return args
+
+
 def open_preview(workspace: Workspace, url: str, fullscreen: bool = True) -> str:
     """Open the page in a chrome-less browser window that looks like a desktop."""
     browser = find_browser()
@@ -153,9 +189,9 @@ def open_preview(workspace: Workspace, url: str, fullscreen: bool = True) -> str
         return "default-browser"
     profile = workspace.state_dir / "preview-browser"
     profile.mkdir(parents=True, exist_ok=True)
-    args = [browser, f"--app={url}", f"--user-data-dir={profile}", "--no-first-run", "--no-default-browser-check"]
-    if fullscreen:
-        args.append("--start-fullscreen")
+    lang = str((workspace.load() if workspace.exists() else {}).get("language") or env.detect_language())
+    quiet_profile(profile, lang)
+    args = browser_window_args(browser, url, profile, lang, fullscreen)
     kwargs: Dict[str, Any] = {"stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL, "close_fds": True}
     if env.IS_WINDOWS:
         kwargs["creationflags"] = env.DETACHED_PROCESS
@@ -200,6 +236,75 @@ def snapshot(url: str, out: Path, width: int = 1920, height: int = 1080, wait_ms
     if out.exists() and out.stat().st_size > 0:
         return True, str(out)
     return False, (err.decode("utf-8", errors="replace") if err else "no image produced")[-400:]
+
+
+def dump_dom(url: str, width: int = 1920, height: int = 1080, wait_ms: int = 5000) -> Tuple[bool, str]:
+    """Load a page in a headless browser and return its DOM after `wait_ms` of (virtual) time."""
+    browser = find_browser()
+    if not browser:
+        return False, "no Chrome, Edge, Chromium or Brave browser found (set ORBIT_BROWSER to one)"
+    with tempfile.TemporaryDirectory(prefix="orbit-dom-") as profile:
+        args = [
+            browser, "--headless=new", "--hide-scrollbars", "--mute-audio", "--no-first-run",
+            "--no-default-browser-check", "--disable-extensions", "--disable-sync",
+            "--disable-background-networking", "--disable-component-update",
+            "--use-mock-keychain", "--password-store=basic",
+            f"--user-data-dir={profile}", f"--window-size={width},{height}",
+            f"--virtual-time-budget={wait_ms}", "--dump-dom", url,
+        ]
+        kwargs: Dict[str, Any] = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE}
+        if env.IS_WINDOWS:
+            kwargs["creationflags"] = env.CREATE_NO_WINDOW
+        proc = subprocess.Popen(args, **kwargs)
+        try:
+            out, err = proc.communicate(timeout=max(60, wait_ms / 1000 * 4))
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            out, err = proc.communicate()
+    text = out.decode("utf-8", errors="replace") if out else ""
+    if text.strip():
+        return True, text
+    return False, (err.decode("utf-8", errors="replace") if err else "no DOM produced")[-400:]
+
+
+def capture_screen(out: Path) -> Tuple[bool, str]:
+    """Save a picture of the whole real screen (all monitors), wallpaper, icons and windows included.
+
+    This is how an agent checks the installed desktop with its own eyes. It shows whatever is on the
+    screen, so only do it when the user asked for the desktop to be checked.
+    """
+    out = Path(out).resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        if env.IS_WINDOWS:
+            script = (
+                "Add-Type -AssemblyName System.Windows.Forms,System.Drawing;"
+                "Add-Type -Namespace Orbit -Name Dpi -MemberDefinition '[DllImport(\"user32.dll\")] public static extern bool SetProcessDPIAware();';"
+                "[Orbit.Dpi]::SetProcessDPIAware() | Out-Null;"
+                "$b=[System.Windows.Forms.SystemInformation]::VirtualScreen;"
+                "$bmp=New-Object System.Drawing.Bitmap $b.Width,$b.Height;"
+                "$g=[System.Drawing.Graphics]::FromImage($bmp);"
+                "$g.CopyFromScreen($b.Left,$b.Top,0,0,$bmp.Size);"
+                "$bmp.Save($env:ORBIT_CAPTURE,[System.Drawing.Imaging.ImageFormat]::Png);"
+                "$g.Dispose();$bmp.Dispose()"
+            )
+            run_env = dict(os.environ, ORBIT_CAPTURE=str(out))
+            subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+                           env=run_env, timeout=30, check=True, creationflags=env.CREATE_NO_WINDOW,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        elif env.IS_MAC:
+            subprocess.run(["screencapture", "-x", str(out)], timeout=30, check=True)
+        else:
+            tool = shutil.which("gnome-screenshot") or shutil.which("import")
+            if not tool:
+                return False, "no screenshot tool (install gnome-screenshot or ImageMagick)"
+            command = [tool, "-f", str(out)] if tool.endswith("gnome-screenshot") else [tool, "-window", "root", str(out)]
+            subprocess.run(command, timeout=30, check=True)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return False, f"screen capture failed: {exc}"
+    if out.exists() and out.stat().st_size > 0:
+        return True, str(out)
+    return False, "no picture was written (on macOS, allow Screen Recording for the terminal)"
 
 
 # --------------------------------------------------------------------------- Windows: Lively Wallpaper

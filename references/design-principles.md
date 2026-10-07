@@ -50,9 +50,14 @@ richer world or leave the function out of this theme.
 
 ## 4. Type, color and light
 
-- One display voice from the world (KaiTi, a monospace, MS Sans Serif) and at most one text face. Prefer
-  fonts that ship with the OS so the desktop works offline; always give a fallback stack with Chinese
-  fonts (Windows: Microsoft YaHei, SimSun, KaiTi; macOS: PingFang SC, Songti SC, Kaiti SC).
+- One display voice from the world (KaiTi, a monospace, MS Sans Serif) and at most one text face.
+  If the voice is a web font, **bundle it in the theme** with `orbit.py fonts` (subsets from Google
+  Fonts saved under assets/fonts, so the desktop looks the same offline and where Google is blocked).
+  A theme that silently falls back to SimSun or Times New Roman looks cheap however good the art is.
+  Always end the stack with a fallback that still looks decent (Windows: Microsoft YaHei UI; macOS:
+  PingFang SC), not SimSun.
+- Keep a short type scale (display, title, text, caption) and use it everywhere. Wide letter-spacing is for
+  short labels and capitals only; Chinese text reads best at 0–0.2em.
 - Four to six color tokens drawn from the world's materials, one accent, and separate semantic colors
   for warning and error. Define them as CSS custom properties on `:root`.
 - Use the time of day: the SDK sets `data-daypart` (dawn, day, dusk, night) and `data-weather`
@@ -66,7 +71,33 @@ richer world or leave the function out of this theme.
 - Never flash or strobe. Respect `prefers-reduced-motion` (`Orbit.loop` drops to 2 fps automatically;
   CSS animations need a media query).
 - Animate with `Orbit.loop(draw, {fps})` so the scene pauses when the wallpaper is hidden or covered by a
-  full-screen app. 20 to 30 fps is plenty for a desktop.
+  full-screen app. Anything that moves continuously (particles, smoke, turning rings, parallax) runs at
+  60 fps: at 30 fps slow motion visibly steps, and stepping reads as cheap. Pay for it by pre-rendering
+  (section 7), not by dropping frames. 30 fps is fine for scenes that change in discrete steps.
+- Drive organic motion with smooth noise (simplex/value noise fields), not stacked sine waves: dust that
+  drifts on a flow field looks like dust; dust on `sin(t)` looks like a screensaver.
+
+## 5½. Craft: what separates premium from cheap
+
+The same idea can look like a film still or like a slide template. The difference is craft:
+
+| Looks cheap | Looks made |
+|---|---|
+| Fallback system fonts, five sizes, letter-spacing everywhere | Bundled fonts, a four-step scale, tracking only on labels |
+| Large flat fills and hard-edged shapes | Light falloff, texture, gradients that follow a light source |
+| Everything equally sharp | Depth: far things soft and hazy, foreground out of focus, the focal subject crisp |
+| Outlines around figures and objects | Rim light on the edge that faces the light; silhouettes melt into the dark away from it |
+| Hard glow rings, glows clipped to squares | Soft bloom from pre-blurred layers or sprites |
+| Banding in dark gradients | A fine animated film grain over everything (CSS overlay, `mix-blend-mode: overlay`) |
+| Particles as dots or squares in random jitter | Dust with depth (tiny sharp far, a few large soft bokeh near) on a flow field |
+| A light "beam" as a flat trapezoid | A soft volumetric column with drifting smoke that only shows where it is lit |
+| Many elements competing | One focal light, a third of the screen quiet, everything else supporting |
+| UI popping up abruptly | An entrance (the scene fades up), eased transitions, nothing appearing in one frame |
+| Browser chrome or a translate bubble on top | No browser UI ever (translate="no", quiet browser profiles) |
+
+Build in layers: paint the static, soft things once (blurred by depth with `ctx.filter = 'blur()'` at build
+time, often at half resolution), then each frame only composite them and draw the few crisp, moving
+lines live. That is what makes 60 fps affordable.
 
 ## 6. Design every state
 
@@ -99,6 +130,7 @@ A wallpaper runs all day. Aim for under 3% CPU when idle on a laptop.
 - [ ] `concept` in theme.json names the world and maps every function and every piece of data.
 - [ ] Each control has a world name and its real meaning is findable.
 - [ ] Progress, confirm, done, error, empty and offline states are all designed.
-- [ ] Snapshots at 1366×768, 1920×1080 and 2560×1440 have no overlap and nothing under the icon side.
-- [ ] Night (`?daypart=night`) and rain (`?weather=rain`) look intended, if the theme uses them.
 - [ ] `orbit.py validate` reports no errors.
+- [ ] `orbit.py review <id>` is clean, and you have opened every picture it made and answered every item in
+      `references/quality-review.md` with what you saw.
+- [ ] After installing, `orbit.py capture` (with the user's OK) shows the theme right on the real desktop.

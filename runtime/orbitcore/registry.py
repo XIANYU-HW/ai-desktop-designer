@@ -138,6 +138,9 @@ def validate_theme(folder: Path, actions: Optional[Dict[str, Dict[str, Any]]] = 
         report.append(("error", 'entry page must load the SDK: <script src="../../sdk/orbit.js"></script>'))
     if _EXTERNAL_SCRIPT.search(html):
         report.append(("warning", "entry page loads scripts from the internet; the desktop will break offline"))
+    if any("fonts.googleapis.com" in text or "fonts.gstatic.com" in text for name, text in texts.items() if "fonts" not in Path(name).parts):
+        report.append(("warning", "fonts load from Google at run time; offline or where Google is blocked the desktop falls back to "
+                                  "system fonts and looks cheap. Bundle them: orbit.py fonts <id> --family \"…\""))
 
     joined = "\n".join(texts.values())
     if "Orbit.loop" not in joined and "prefers-reduced-motion" not in joined:

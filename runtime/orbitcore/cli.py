@@ -6,6 +6,7 @@ import json
 import shutil
 import subprocess
 import sys
+import time
 import zipfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -335,6 +336,85 @@ def cmd_snapshot(args: argparse.Namespace) -> int:
         return 0
     out.say(f"截图失败：{detail}", f"Snapshot failed: {detail}")
     return 1
+
+
+def cmd_review(args: argparse.Namespace) -> int:
+    """Render a theme in many sizes and states, let it measure itself, and write a report to work through."""
+    from . import review
+    ws = _workspace(args)
+    config = ws.ensure()
+    out = Out(config["language"])
+    folder = _theme_folder(ws, args.theme)
+    if folder is None:
+        out.say(f"找不到主题 {args.theme}。", f"No theme '{args.theme}'.")
+        return 1
+    if not _require_helper(ws, out):
+        return 1
+    theme = env.read_json(folder / "theme.json", {}) or {}
+    theme_id = theme.get("id") or folder.name
+    target = Path(args.out).expanduser() if args.out else ws.root / "review" / f"{theme_id}-{time.strftime('%Y%m%d-%H%M%S')}"
+    out.say(f"正在审阅 {theme_id}（多尺寸、多状态截图 + 页面自检）…", f"Reviewing {theme_id} (sizes, states and the page's own measurements)…")
+    worst, report = review.run(folder, theme, int(config["port"]), target, quick=args.quick, wait_ms=args.wait)
+    for line in report.read_text(encoding="utf-8").split("## Pictures")[0].splitlines()[6:]:
+        if line.strip():
+            print(line)
+    out.say(
+        f"\n报告和截图：{report.parent}\n下一步：逐张打开截图，按报告里的清单逐项检查；不达标就改，然后再审阅一次。",
+        f"\nReport and pictures: {report.parent}\nNext: open every picture and answer the checklist in the report; fix what falls short and review again.",
+    )
+    return 1 if worst >= 2 else 0
+
+
+def cmd_capture(args: argparse.Namespace) -> int:
+    """Save a picture of the real screen, to check the installed desktop with your own eyes."""
+    ws = _workspace(args)
+    out = Out(_lang(ws))
+    if args.delay:
+        time.sleep(max(0.0, float(args.delay)))
+    target = Path(args.out).expanduser() if args.out else ws.root / "review" / f"screen-{time.strftime('%Y%m%d-%H%M%S')}.png"
+    ok, detail = hosts.capture_screen(target)
+    if ok:
+        out.say(f"屏幕截图：{detail}", f"Screen captured: {detail}")
+        return 0
+    out.say(f"截屏失败：{detail}", f"Could not capture the screen: {detail}")
+    return 1
+
+
+def cmd_fonts(args: argparse.Namespace) -> int:
+    """Bundle subsets of a Google font into the theme so it never falls back to a system font."""
+    from . import fonts
+    ws = _workspace(args)
+    out = Out(_lang(ws))
+    folder = _theme_folder(ws, args.theme)
+    if folder is None:
+        out.say(f"找不到主题 {args.theme}。", f"No theme '{args.theme}'.")
+        return 1
+    try:
+        weights = [int(w) for w in str(args.weights).split(",") if w.strip()]
+    except ValueError:
+        out.say("--weights 的格式是 300,400,600。", "--weights looks like 300,400,600.")
+        return 1
+    chars = fonts.plan_chars(folder, args.chars or [])
+    if args.script == "latin":
+        chars = "".join(ch for ch in chars if ord(ch) < 0x2E80)
+    elif args.script == "cjk":
+        chars = "".join(ch for ch in chars if ord(ch) >= 0x2E80) + fonts.CJK_PUNCTUATION
+    out.say(f"正在下载 {args.family}（{len(set(chars))} 个字符）…", f"Downloading {args.family} ({len(set(chars))} characters)…")
+    try:
+        css, files = fonts.bundle(folder, args.family, weights, name=args.name, italic=args.italic, chars=chars)
+    except Exception as exc:  # network, proxy, unknown family
+        out.say(f"字体下载失败：{exc}", f"Could not download the font: {exc}")
+        return 1
+    total = sum(p.stat().st_size for p in files) // 1024
+    out.say(
+        f"已打包 {len(files)} 个字体文件（{total} KB）到 {css.parent}\n"
+        f"在 index.html 的 style.css 之前加上：<link rel=\"stylesheet\" href=\"assets/fonts/fonts.css\">\n"
+        f"然后在 CSS 里用 font-family: \"{args.name or args.family}\"。",
+        f"Bundled {len(files)} font files ({total} KB) into {css.parent}\n"
+        f"Add before style.css in index.html: <link rel=\"stylesheet\" href=\"assets/fonts/fonts.css\">\n"
+        f"and use font-family: \"{args.name or args.family}\" in the CSS.",
+    )
+    return 0
 
 
 def cmd_actions(args: argparse.Namespace) -> int:
@@ -755,6 +835,22 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--wait", type=int, default=4000, help="milliseconds of animation before the shot")
     p.add_argument("--live", action="store_true", help="use real data instead of demo data")
     p.add_argument("--query", help="extra URL parameters, e.g. daypart=night&weather=rain")
+    p = add("review", cmd_review, "render a theme in many sizes and states, measure it, and write a report to check against")
+    p.add_argument("theme")
+    p.add_argument("--out", help="folder for the report and pictures (default ~/OrbitDesktop/review/<theme>-<time>)")
+    p.add_argument("--quick", action="store_true", help="two screen sizes instead of five")
+    p.add_argument("--wait", type=int, default=4500, help="milliseconds of animation before each picture")
+    p = add("capture", cmd_capture, "save a picture of the real screen to check the installed desktop (ask the user first)")
+    p.add_argument("--out")
+    p.add_argument("--delay", type=float, default=0, help="seconds to wait first, e.g. to hover something")
+    p = add("fonts", cmd_fonts, "bundle subsets of a Google font into a theme (works offline and where Google is blocked)")
+    p.add_argument("theme")
+    p.add_argument("--family", required=True, help='Google Fonts family, e.g. "Noto Serif SC"')
+    p.add_argument("--weights", default="400", help="comma-separated weights, e.g. 300,400,600")
+    p.add_argument("--name", help="font-family name to use in the theme (default: the family name)")
+    p.add_argument("--italic", action="store_true")
+    p.add_argument("--script", choices=["all", "latin", "cjk"], default="all", help="keep only these characters")
+    p.add_argument("--chars", action="append", help="add a character set: common-zh, ascii, or literal characters (repeatable)")
     add("actions", cmd_actions, "list actions (desktop functions)")
     p = add("run", cmd_run, "run an action operation, e.g. run tidy-files preview")
     p.add_argument("action")

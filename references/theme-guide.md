@@ -35,12 +35,37 @@ pages a moment after you save a file.
     "metaphors": { "tidy-files.run": "…", "quit-apps.run": "…", "system.battery": "…" }
   },
   "uses": { "actions": ["tidy-files", "quit-apps"], "data": ["clock", "weather", "system"] },
-  "performance": { "fps": 24 }
+  "performance": { "fps": 60 },
+  "review": { "states": { "armed": "confirm=quit-apps", "typing": "pray=hello" } }
 }
 ```
 
 `id` uses a-z, 0-9 and `-`, and matches the folder name. `name` and `description` may be plain strings or
 `{ "zh-CN": …, "en": … }`. `uses.actions` must list every action the page uses (validate checks this).
+`review.states` (optional) names extra states `orbit.py review` should render: each value is a query
+string that your scene.js turns into that state in demo mode (show a confirm list, a half-written input…).
+
+## Fonts
+
+Bundle the fonts the theme uses, so it looks the same offline, at sign-in before the network is up, and
+where Google is blocked (mainland China):
+
+```
+orbit.py fonts <id> --family "Noto Serif SC" --weights 400 --name "My Serif" --chars common-zh   # every common Chinese character
+orbit.py fonts <id> --family "Noto Serif SC" --weights 600 --name "My Serif" --script cjk          # only the theme's own words
+orbit.py fonts <id> --family "Cormorant Garamond" --weights 300,500 --name "My Garamond" --script latin
+```
+
+Each call downloads subsets that contain only the needed characters (the theme's own text, plus
+`common-zh` for anything the user may type), saves them in `assets/fonts/` and updates
+`assets/fonts/fonts.css`. Link it before style.css and use the `--name` as the font-family:
+
+```html
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+```
+
+Run the command again after adding new words to the theme. The whole common Chinese set at one weight is
+about 800 KB.
 
 ## The SDK
 
@@ -103,7 +128,7 @@ Orbit.on('pause', () => {}); Orbit.on('resume', () => {}); Orbit.on('connection'
 
 Orbit.run('tidy-files', 'run', {});            // what a button does; resolves to { ok, message, data }
 Orbit.query('quit-apps', 'preview');           // read-only data, no UI side effects
-Orbit.loop((t, dt) => draw(t, dt), { fps: 24 }); // pauses when hidden; t = seconds of visible animation
+Orbit.loop((t, dt) => draw(t, dt), { fps: 60 }); // pauses when hidden; t = seconds of visible animation
 Orbit.t('中文', 'English');                     // pick text for the user's language (Orbit.lang is 'zh' or 'en')
 Orbit.formatDate(new Date(), '{HH}:{mm}');
 Orbit.pointer                                   // { x, y } in 0..1 for subtle parallax
@@ -132,6 +157,17 @@ Orbit.progressPace = 160;                       // ms between progress events (t
   `e.data.open` (satellites).
 - **Per-item progress:** spawn one animated object per `progress` event; finish with an effect on `done`.
 - **Confirm in the world's language:** listen to `confirm` and render `e.preview.data.apps` (Close Program list in `defrag-95`).
+- **Soft layers, crisp lines:** paint backgrounds, light shafts, haze and glows once into offscreen canvases
+  (blurred with `ctx.filter` at build time, often at half resolution) and composite them every frame; draw
+  only the crisp moving parts live. Add film grain as a CSS overlay so dark gradients never band.
+- **Text input:** a wallpaper host passes clicks to the page but never the keyboard or an input method
+  (Chinese, Japanese…). If the theme takes text (a search box, a prompt for an AI, a note), clicking the
+  field should open the same page full screen in its own browser window and take the text there: an action
+  launches it with `hosts.browser_window_args(...)` and a profile prepared with `hosts.quiet_profile(...)`
+  (no translate bubble, no first-run pages), brings it to the front, and the page closes itself with
+  `window.close()` when it loses the focus or the text has been handed on.
+- **No browser UI:** the SDK marks every page `translate="no"`; keep it that way, and never open a
+  browser window for the theme without a quiet profile.
 
 ## Checking a theme
 
@@ -139,8 +175,13 @@ Orbit.progressPace = 160;                       // ms between progress events (t
 orbit.py validate <id>                       # manifest, SDK tag, actions exist, reduced motion, size
 orbit.py snapshot <id>                       # writes preview.png using demo data
 orbit.py snapshot <id> --size 1366x768 --out small.png
+orbit.py review <id>                         # every size and state + the page's own measurements + checklist
+orbit.py capture                             # after installing: a picture of the real screen (ask first)
 orbit.py open <id> --window                  # look at it live
 ```
 
 URL switches for previews: `?demo` (sample data), `?daypart=night|dawn|dusk|day`,
-`?weather=rain|snow|fog|clear`, `?lang=en|zh`, `?snapshot` (no live connection, used by snapshots).
+`?weather=rain|snow|fog|clear`, `?lang=en|zh`, `?snapshot` (no live connection, used by snapshots),
+`?review` (the page measures itself and writes a JSON report into the DOM; used by `orbit.py review`).
+
+Work through `references/quality-review.md` with the review's pictures before showing anything to the user.
