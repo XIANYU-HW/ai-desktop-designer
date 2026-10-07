@@ -81,7 +81,11 @@
   function render(state) {
     var grid = document.getElementById('themes');
     grid.innerHTML = '';
-    state.themes.forEach(function (theme) {
+    var featured = ['threebody-observatory', 'genshin-sumeru'];
+    state.themes.slice().sort(function (a, b) {
+      var ai = featured.indexOf(a.id), bi = featured.indexOf(b.id);
+      return (ai < 0 ? 2 : ai) - (bi < 0 ? 2 : bi);
+    }).forEach(function (theme) {
       var card = el('article', { class: 'card' });
       var shot = el('div', { class: 'shot', role: 'img', 'aria-label': theme.name });
       if (theme.has_preview) shot.style.backgroundImage = 'url(/themes/' + theme.id + '/preview.png)';

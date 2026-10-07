@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "threebody-observatory",
+  "name": { "zh-CN": "三体 · 文明观测站", "en": "Three-Body Observatory" },
+  "description": { "zh-CN": "三日凌空下的文明观测站。比较有限三体轨迹，在暗铜观测台归档资料、静默值守并开始一段专注。", "en": "A civilization observatory beneath three suns, with an interactive finite three-body model, desktop tools and a local focus timer." },
+  "author": "Orbit Desktop",
+  "version": "1.0.0",
+  "language": "zh-CN",
+  "entry": "index.html",
+  "palette": { "background": "#080a0d", "text": "#eee6d5", "muted": "#b7b1a3", "accent": "#c78d57", "warning": "#eda16a" },
+  "concept": {
+    "world": "A monumental civilization observatory, three suns and an austere bronze observation instrument.",
+    "mood": "Cinematic scale, bone-white typography, dark copper, quiet negative space and measured light.",
+    "type": "Bundled serif display lettering paired with deliberate system text and tabular numbers.",
+    "motion": "A bounded 30 fps finite numerical orbit demonstration over static scene art; freeze and reduced motion are respected.",
+    "metaphors": { "tidy-files.run": "文明归档: archive loose desktop files", "tidy-files.undo": "恢复档案: undo the last archive", "open-path.run": "资料库: open Documents", "quit-apps.run": "静默值守: ask unprotected apps to quit normally", "focus": "守望: a recoverable local 25-minute focus timer" }
+  },
+  "requirements": [
+    { "id": "R1", "request": "Integrated Three-Body-inspired artwork and observation", "implementation": "scene.png, orbit canvas, epoch/comparison/freeze controls", "verification": "overview, responsive captures and demo interactions" },
+    { "id": "R2", "request": "Real desktop tools", "implementation": "tidy-files, open-path, quit-apps SDK bindings with plain subtitles", "verification": "demo state fixtures; built-in behavior covered separately" },
+    { "id": "R3", "request": "Useful new local function", "implementation": "25-minute focus timer with deadline storage, pause and reset", "verification": "start/pause/reset/finish and reload recovery" }
+  ],
+  "uses": { "actions": ["tidy-files", "open-path", "quit-apps"], "data": ["clock", "weather"] },
+  "performance": { "fps": 30, "max_pixel_ratio": 1.5, "max_render_width": 2400, "trajectory_samples": 1600, "max_pulses": 4, "reduced_motion": "static" },
+  "review": { "states": {
+    "chaotic": "review-state=chaotic", "comparison": "review-state=comparison", "frozen": "review-state=frozen",
+    "focus-running": "review-state=focus-running", "focus-done": "review-state=focus-done",
+    "armed": "review-state=armed", "running": "review-state=running", "done": "review-state=done",
+    "error": "review-state=error", "empty": "review-state=empty", "offline": "review-state=offline", "undo": "review-state=undo"
+  } }
+}

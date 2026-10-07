@@ -2,8 +2,13 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -17,6 +22,7 @@ jobs:
           - os: ubuntu-latest
             python: "3.9"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     env:
       ORBIT_WORKSPACE: ${{ github.workspace }}/.ci-workspace
       PYTHONIOENCODING: utf-8
@@ -42,6 +48,7 @@ jobs:
 
       - name: Render previews in a real browser
         if: runner.os != 'Linux'
+        timeout-minutes: 12
         shell: bash
         run: |
           python runtime/orbit.py start
@@ -51,9 +58,12 @@ jobs:
             python runtime/orbit.py snapshot "$t" --out "previews/$t-zh-night.png" --query "lang=zh&daypart=night&weather=rain"
             python runtime/orbit.py snapshot "$t" --out "previews/$t-1366.png" --size 1366x768
           done
+          python runtime/orbit.py snapshot threebody-observatory --out previews/threebody-default.png --query "lang=zh"
+          python runtime/orbit.py snapshot threebody-observatory --out previews/threebody-comparison.png --query "lang=zh&review-state=comparison"
+          python runtime/orbit.py snapshot genshin-sumeru --out previews/sumeru-default.png --query "lang=zh"
+          python runtime/orbit.py snapshot genshin-sumeru --out previews/sumeru-bloom.png --query "lang=zh&review-state=bloom"
           python runtime/orbit.py new-theme ci-starter
           python runtime/orbit.py review ci-starter --quick --out previews/starter-review
-          python runtime/orbit.py stop
 
       - name: Show helper logs after a failure
         if: failure()
@@ -62,9 +72,17 @@ jobs:
           for f in "$ORBIT_WORKSPACE"/logs/*.log; do echo "== $f"; tail -n 60 "$f" || true; done
           (lsof -nP -iTCP:47321 -sTCP:LISTEN || netstat -ano | grep 47321 || true) 2>/dev/null
 
+      - name: Stop the CI helper
+        if: always() && runner.os != 'Linux'
+        timeout-minutes: 2
+        run: python runtime/orbit.py stop
+
       - name: Upload previews
-        if: runner.os != 'Linux'
+        if: always() && runner.os != 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: previews-${{ runner.os }}
-          path: previews/
+          include-hidden-files: true
+          path: |
+            previews/
+            .ci-workspace/logs/

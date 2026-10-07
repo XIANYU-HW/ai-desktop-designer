@@ -1,7 +1,26 @@
 # Contrasting design and acceptance cases
 
 These are examples, not presets or mandatory layouts. Keep the user's functions and requirements.
-None proves the runtime already supplies the custom behavior.
+The hypothetical cases below do not imply that the runtime supplies their custom behavior.
+
+## Implemented showcase cases
+
+Read the source and inspect a running demo before reusing a technique. These two themes demonstrate
+different compositions; neither is a mandatory house style. Artwork provenance is in
+[showcase-art.md](../docs/showcase-art.md), and actual checks in
+[showcase-verification.md](../docs/showcase-verification.md).
+
+| Theme | Core idea → design → behavior | Useful function and limits |
+|---|---|---|
+| [Three-body Observatory](../themes/threebody-observatory/) | Unpredictability and civilization records → dark bronze instrument and quiet left-hand text → compare reference and perturbed finite trajectories, pointer observation, freeze | A 25-minute deadline-based focus timer; clearly labeled file/library/quit tools. The equal-mass softened model is conceptual, not a prediction of fictional or real planetary eras. |
+| [Sumeru Garden](../themes/genshin-sumeru/) | Knowledge and growth → tree city, illuminated scrolls, distributed botanical controls → image-aligned water glints, bounded blooms and branching elemental responses | Browser-local notes with draft recovery; the same file/library/quit tools in a different material language. Reactions interpret a theme, not game combat rules. |
+
+The connection must be visible in the scene and usable in the control. Naming a generic button after
+an IP character is insufficient; adding ornament must not conceal what the action does. For lavish
+art, keep quiet regions around text, animate selected materials rather than warping the whole image,
+and inspect both the normal state and the most elaborate interaction state at the target resolution.
+
+## Further design briefs
 
 | Request | Design choices | Evidence that matters |
 |---|---|---|

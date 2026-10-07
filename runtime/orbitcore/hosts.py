@@ -204,6 +204,92 @@ def open_preview(workspace: Workspace, url: str, fullscreen: bool = True) -> str
     return Path(browser).name
 
 
+_BROWSER_CLEANUP_SECONDS = 5.0
+_BROWSER_STDOUT_LIMIT = 16 * 1024 * 1024
+_BROWSER_STDERR_LIMIT = 64 * 1024
+
+
+def _stop_headless(proc: subprocess.Popen) -> str:
+    """Stop only this render's isolated group/tree, then reap with a deadline.
+
+    Never match browser names: the user's normal browser is a separate process.
+    A process group is created at launch on POSIX; Windows taskkill targets only
+    the new browser PID and its descendants.
+    """
+    cleanup_error = ""
+    if env.IS_WINDOWS:
+        try:
+            result = subprocess.run(
+                ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=_BROWSER_CLEANUP_SECONDS, creationflags=env.CREATE_NO_WINDOW,
+            )
+            if result.returncode:
+                cleanup_error = "the render process tree cleanup failed"
+                proc.kill()
+        except (OSError, subprocess.SubprocessError):
+            cleanup_error = "the render process tree cleanup failed"
+            try:
+                proc.kill()
+            except OSError:
+                pass
+    else:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        except OSError:
+            cleanup_error = "the isolated render process group cleanup failed"
+            try:
+                proc.kill()
+            except OSError:
+                pass
+    try:
+        proc.wait(timeout=_BROWSER_CLEANUP_SECONDS)
+    except subprocess.TimeoutExpired:
+        return "the render process did not exit within the cleanup deadline"
+    return cleanup_error
+
+
+def _run_headless(args: List[str], timeout: float) -> Tuple[bytes, bytes, bool, str]:
+    """Capture output without pipes that surviving browser children can hold open."""
+    with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
+        kwargs: Dict[str, Any] = {"stdin": subprocess.DEVNULL, "stdout": stdout, "stderr": stderr}
+        if env.IS_WINDOWS:
+            kwargs["creationflags"] = env.CREATE_NO_WINDOW | env.CREATE_NEW_PROCESS_GROUP
+        else:
+            kwargs["start_new_session"] = True
+        try:
+            proc = subprocess.Popen(args, **kwargs)
+        except OSError as exc:
+            return b"", str(exc).encode("utf-8", errors="replace"), False, "could not start the browser"
+        timed_out, cleanup_error = False, ""
+        try:
+            proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            cleanup_error = _stop_headless(proc)
+        except BaseException:
+            # A new POSIX session does not receive the terminal's Ctrl+C. Reap
+            # our render before propagating cancellation to the caller.
+            _stop_headless(proc)
+            raise
+        stdout.seek(0)
+        output = stdout.read(_BROWSER_STDOUT_LIMIT + 1)
+        if len(output) > _BROWSER_STDOUT_LIMIT:
+            output = b""
+            cleanup_error = cleanup_error or "browser DOM output exceeded the size limit"
+        stderr.seek(0, os.SEEK_END)
+        stderr.seek(max(0, stderr.tell() - _BROWSER_STDERR_LIMIT))
+        errors = stderr.read(_BROWSER_STDERR_LIMIT)
+        return output, errors, timed_out, cleanup_error
+
+
+def _browser_error(message: str, stderr: bytes) -> str:
+    detail = stderr.decode("utf-8", errors="replace").strip()[-400:]
+    return message + (": " + detail if detail else "")
+
+
 def snapshot(url: str, out: Path, width: int = 1920, height: int = 1080, wait_ms: int = 4000) -> Tuple[bool, str]:
     """Render a page with a headless browser into a PNG file."""
     browser = find_browser()
@@ -223,22 +309,16 @@ def snapshot(url: str, out: Path, width: int = 1920, height: int = 1080, wait_ms
             f"--user-data-dir={profile}", f"--window-size={width},{height}",
             f"--virtual-time-budget={wait_ms}", f"--screenshot={out}", url,
         ]
-        kwargs: Dict[str, Any] = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE}
-        if env.IS_WINDOWS:
-            kwargs["creationflags"] = env.CREATE_NO_WINDOW
-        proc = subprocess.Popen(args, **kwargs)
-        try:
-            _, err = proc.communicate(timeout=max(60, wait_ms / 1000 * 4))
-        except subprocess.TimeoutExpired:
-            # Some browsers write the picture and then fail to exit; keep the picture if it is there.
-            proc.kill()
-            _, err = proc.communicate()
-            if out.exists() and out.stat().st_size > 0:
-                return True, str(out)
-            return False, "the browser took too long"
+        _, err, timed_out, cleanup_error = _run_headless(args, timeout=max(60, wait_ms / 1000 * 4))
+        if cleanup_error:
+            return False, _browser_error(cleanup_error, err)
+        # Some browsers write the picture and then fail to exit; keep the image
+        # only after bounded cleanup has reaped the process we started.
+        if timed_out and not (out.exists() and out.stat().st_size > 0):
+            return False, _browser_error("the browser took too long", err)
     if out.exists() and out.stat().st_size > 0:
         return True, str(out)
-    return False, (err.decode("utf-8", errors="replace") if err else "no image produced")[-400:]
+    return False, _browser_error("no image produced", err)
 
 
 def dump_dom(url: str, width: int = 1920, height: int = 1080, wait_ms: int = 5000) -> Tuple[bool, str]:
@@ -255,19 +335,13 @@ def dump_dom(url: str, width: int = 1920, height: int = 1080, wait_ms: int = 500
             f"--user-data-dir={profile}", f"--window-size={width},{height}",
             f"--virtual-time-budget={wait_ms}", "--dump-dom", url,
         ]
-        kwargs: Dict[str, Any] = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE}
-        if env.IS_WINDOWS:
-            kwargs["creationflags"] = env.CREATE_NO_WINDOW
-        proc = subprocess.Popen(args, **kwargs)
-        try:
-            out, err = proc.communicate(timeout=max(60, wait_ms / 1000 * 4))
-        except subprocess.TimeoutExpired:
-            proc.kill()
-            out, err = proc.communicate()
+        out, err, timed_out, cleanup_error = _run_headless(args, timeout=max(60, wait_ms / 1000 * 4))
+        if cleanup_error or timed_out:
+            return False, _browser_error(cleanup_error or "the browser took too long", err)
     text = out.decode("utf-8", errors="replace") if out else ""
     if text.strip():
         return True, text
-    return False, (err.decode("utf-8", errors="replace") if err else "no DOM produced")[-400:]
+    return False, _browser_error("no DOM produced", err)
 
 
 def capture_screen(out: Path) -> Tuple[bool, str]:

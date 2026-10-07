@@ -17,7 +17,7 @@ ORBIT = [sys.executable, str(ROOT / "runtime" / "orbit.py")]
 class RegistryTest(unittest.TestCase):
     def test_bundled_themes_are_valid(self):
         actions = registry.load_actions(Path("/nonexistent-workspace"))
-        for theme_id in ("ink-study", "deep-orbit", "defrag-95"):
+        for theme_id in ("threebody-observatory", "genshin-sumeru", "ink-study", "deep-orbit", "defrag-95"):
             report = registry.validate_theme(ROOT / "themes" / theme_id, actions)
             errors = [m for level, m in report if level == "error"]
             self.assertEqual(errors, [], theme_id)
@@ -83,10 +83,10 @@ class CliTest(unittest.TestCase):
             self.orbit("init", "--lang", "zh-CN")
             self.assertEqual(json.loads((h.workspace.root / "config.json").read_text(encoding="utf-8"))["language"], "zh-CN")
             themes = self.orbit("themes").stdout
-            for theme_id in ("ink-study", "deep-orbit", "defrag-95"):
+            for theme_id in ("threebody-observatory", "genshin-sumeru", "ink-study", "deep-orbit", "defrag-95"):
                 self.assertIn(theme_id, themes)
             self.assertIn("tidy-files", self.orbit("actions").stdout)
-            self.orbit("validate", "ink-study", "deep-orbit", "defrag-95")
+            self.orbit("validate", "threebody-observatory", "genshin-sumeru", "ink-study", "deep-orbit", "defrag-95")
             self.orbit("doctor")
 
     def test_new_theme_and_action(self):
@@ -133,7 +133,7 @@ class CliTest(unittest.TestCase):
             self.assertEqual(fresh["theme_source"], "default")
             chosen = Workspace(h.base / "chosen").ensure(language="zh-CN")
             self.assertEqual(chosen["language_source"], "user")
-            self.assertEqual(chosen["active_theme"], "ink-study")
+            self.assertEqual(chosen["active_theme"], "threebody-observatory")
 
     def test_export_and_import_theme(self):
         with TempHome() as h:

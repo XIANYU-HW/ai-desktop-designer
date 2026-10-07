@@ -14,7 +14,7 @@ native Mac ORBIT app; its source, themes and permissions do not transfer automat
   assets/          optional art, fonts, video, sounds
 ```
 
-Use `new-theme <id> --from template` or `--from ink-study|deep-orbit|defrag-95`. Preserve an existing
+Use `new-theme <id> --from template` or `--from <existing-theme-id>` (see `themes`). Preserve an existing
 version before editing. The template is a static skeleton with clock/weather, no preselected actions,
 and working empty/offline fixtures. Replace its composition, data and visual language as needed. A
 saved change can reload open live pages, so preserve unsent input before enabling that behavior in a
