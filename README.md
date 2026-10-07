@@ -5,9 +5,13 @@
 [![CI](https://github.com/XIANYU-HW/orbit-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/XIANYU-HW/orbit-desktop/actions/workflows/ci.yml)
 [**进入主题展厅 →**](https://xianyu-hw.github.io/orbit-desktop/) · [三体试玩](https://xianyu-hw.github.io/orbit-desktop/themes/threebody-observatory/?demo=1&lang=zh-CN) · [原神试玩](https://xianyu-hw.github.io/orbit-desktop/themes/genshin-sumeru/?demo=1&lang=zh-CN) · [使用方法](#开始使用) · [English](#english)
 
-Orbit Desktop 是一个面向 **Codex、Claude Code 等 AI 编程助手的桌面设计 Skill**，附带可独立运行的主题引擎与本机工具。给它一个世界、一种情绪，或一套工作习惯；让 AI 从主题内核出发，设计画面、运动、交互，以及每天真正会用的功能。
+早晨，在须弥的树荫下记一行灵感。深夜，在三日凌空的观测站，归档最后一份文件。
 
-你可以在三日凌空的观测台建立秩序，也可以在须弥的林间整理卷宗。**外观、行为和工具，共同构成主题。**
+移动鼠标，星图回应你的观测；轻触庭院，元素在花叶间绽放。那些每天都会用到的时钟、便笺、计时器与文件入口，也都有了属于这个世界的位置。
+
+**你给出想象，AI 把它写成可以生活、可以工作的桌面。**
+
+Orbit Desktop 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计 Skill**，附带可独立运行的主题引擎与本机工具。从主题内核出发，把画面、运动、交互和日常功能一起设计出来。
 
 ---
 
@@ -50,6 +54,12 @@ Orbit Desktop 是一个面向 **Codex、Claude Code 等 AI 编程助手的桌面
 > **在线试玩说明：** 文件、应用和天气使用示例数据；系统操作按钮只演示反馈，不访问你的文件、不退出应用。计时与便笺可在浏览器中使用，便笺只存于该浏览器本地。截图来自实际运行的主题页面。
 
 ---
+
+## 起点，是一次桌面大扫除。
+
+先想把散落的文件整理好。接着，希望整理是一枚融入画面的按钮，天气和时钟像是风景的一部分。再后来，希望河流会流动、星空会回应鼠标，换一个主题时，整套桌面也能换一种性格。
+
+一次次迭代留下了一套方法：**理解主题，设计整个场景，让功能落地，亲手测试，再把旧主题妥善保留。** Orbit Desktop 把这套方法写进 Skill，交给 AI，也交给下一个有想法的人。
 
 ## 这个 Skill 教 AI 做什么？
 
@@ -161,6 +171,8 @@ macOS / Linux 可用 `python3`。用户工作区默认 `~/OrbitDesktop`，与仓
 ---
 
 ## English
+
+Keep a thought beneath Sumeru's canopy. File away the day beneath three suns. Move the pointer, and the world responds.
 
 **Orbit Desktop is an agent skill for designing a coherent, useful desktop around a world, a mood or a way of working.** It includes a portable web-theme runtime and a local Python helper. Use it with Codex, Claude Code or another compatible coding agent.
 

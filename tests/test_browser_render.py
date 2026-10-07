@@ -2,6 +2,7 @@
 import subprocess
 import tempfile
 import unittest
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -10,6 +11,15 @@ from orbitcore import env, hosts
 
 
 class BrowserRenderTest(unittest.TestCase):
+    @contextmanager
+    def posix_process_api(self):
+        # These POSIX-only APIs are absent on Windows. Supply both explicitly
+        # so Windows still exercises this cleanup branch without real signals.
+        with patch.object(env, "IS_WINDOWS", False), \
+             patch.object(hosts.os, "killpg", create=True) as kill_group, \
+             patch.object(hosts.signal, "SIGKILL", 9, create=True):
+            yield kill_group
+
     def process(self, waits, stdout=b"", stderr=b"", image=False):
         process = Mock(pid=246810)
         process.wait.side_effect = waits
@@ -32,15 +42,14 @@ class BrowserRenderTest(unittest.TestCase):
         process, launch = self.process([subprocess.TimeoutExpired("fake-browser", 60), -9], stderr=b"renderer stalled")
         with tempfile.TemporaryDirectory(prefix="orbit-render-test-") as directory:
             with patch.object(hosts, "find_browser", return_value="fake-browser"), \
-                 patch.object(env, "IS_WINDOWS", False), \
-                 patch.object(hosts.subprocess, "Popen", side_effect=launch) as started, \
-                 patch.object(hosts.os, "killpg") as kill_group:
+                 self.posix_process_api() as kill_group, \
+                 patch.object(hosts.subprocess, "Popen", side_effect=launch) as started:
                 ok, detail = hosts.snapshot("http://example.invalid/", Path(directory) / "preview.png")
         self.assertFalse(ok)
         self.assertIn("took too long", detail)
         self.assertIn("renderer stalled", detail)
         self.assertTrue(started.call_args.kwargs["start_new_session"])
-        kill_group.assert_called_once_with(process.pid, hosts.signal.SIGKILL)
+        kill_group.assert_called_once_with(process.pid, 9)
         self.assertEqual([c.kwargs["timeout"] for c in process.wait.call_args_list], [60, hosts._BROWSER_CLEANUP_SECONDS])
         process.communicate.assert_not_called()
 
@@ -49,8 +58,8 @@ class BrowserRenderTest(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="orbit-render-test-") as directory:
             target = Path(directory) / "preview.png"
             with patch.object(hosts, "find_browser", return_value="fake-browser"), \
-                 patch.object(env, "IS_WINDOWS", False), \
-                 patch.object(hosts.subprocess, "Popen", side_effect=launch), patch.object(hosts.os, "killpg"):
+                 self.posix_process_api(), \
+                 patch.object(hosts.subprocess, "Popen", side_effect=launch):
                 ok, detail = hosts.snapshot("http://example.invalid/", target)
             self.assertTrue(ok)
             self.assertEqual(detail, str(target.resolve()))
@@ -60,8 +69,8 @@ class BrowserRenderTest(unittest.TestCase):
         process, launch = self.process([subprocess.TimeoutExpired("fake-browser", 60), -9],
                                        stdout=b"<html><body>unfinished", stderr=b"renderer crash")
         with patch.object(hosts, "find_browser", return_value="fake-browser"), \
-             patch.object(env, "IS_WINDOWS", False), \
-             patch.object(hosts.subprocess, "Popen", side_effect=launch), patch.object(hosts.os, "killpg"):
+             self.posix_process_api(), \
+             patch.object(hosts.subprocess, "Popen", side_effect=launch):
             ok, detail = hosts.dump_dom("http://example.invalid/")
         self.assertFalse(ok)
         self.assertIn("took too long", detail)
@@ -102,19 +111,19 @@ class BrowserRenderTest(unittest.TestCase):
 
     def test_keyboard_interrupt_cleans_up_new_session_before_propagating(self):
         process, launch = self.process([KeyboardInterrupt(), -9])
-        with patch.object(env, "IS_WINDOWS", False), \
-             patch.object(hosts.subprocess, "Popen", side_effect=launch), patch.object(hosts.os, "killpg") as kill_group:
+        with self.posix_process_api() as kill_group, \
+             patch.object(hosts.subprocess, "Popen", side_effect=launch):
             with self.assertRaises(KeyboardInterrupt):
                 hosts._run_headless(["fake-browser"], timeout=60)
-        kill_group.assert_called_once_with(process.pid, hosts.signal.SIGKILL)
+        kill_group.assert_called_once_with(process.pid, 9)
         self.assertEqual(process.wait.call_args.kwargs["timeout"], hosts._BROWSER_CLEANUP_SECONDS)
 
     def test_cleanup_timeout_is_reported_even_if_snapshot_was_written(self):
         process, launch = self.process([subprocess.TimeoutExpired("fake-browser", 60), subprocess.TimeoutExpired("fake-browser", 5)], image=True)
         with tempfile.TemporaryDirectory(prefix="orbit-render-test-") as directory:
             with patch.object(hosts, "find_browser", return_value="fake-browser"), \
-                 patch.object(env, "IS_WINDOWS", False), \
-                 patch.object(hosts.subprocess, "Popen", side_effect=launch), patch.object(hosts.os, "killpg"):
+                 self.posix_process_api(), \
+                 patch.object(hosts.subprocess, "Popen", side_effect=launch):
                 ok, detail = hosts.snapshot("http://example.invalid/", Path(directory) / "preview.png")
         self.assertFalse(ok)
         self.assertIn("cleanup deadline", detail)
