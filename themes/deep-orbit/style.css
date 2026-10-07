@@ -1,0 +1,140 @@
+/* Deep Orbit · 深空轨道
+   Layout: instrument panels on the right edge, the command console along the bottom,
+   the planet low on the right; the left stays clear for desktop icons. */
+:root {
+  --space: #05070d;
+  --panel: rgba(9, 15, 28, 0.62);
+  --line: rgba(140, 190, 255, 0.2);
+  --line-strong: rgba(140, 200, 255, 0.45);
+  --text: #cfe3ff;
+  --dim: #6f86a8;
+  --cyan: #63e6ff;
+  --amber: #ffb547;
+  --red: #ff6b5d;
+  --mono: "JetBrains Mono", "Cascadia Mono", "Consolas", "SF Mono", "Menlo", "Microsoft YaHei UI", "PingFang SC", monospace;
+  --cjk: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+  --safe-left: 0px;
+  --safe-right: 0px;
+  --edge: 3.2vw;
+  --u: 1.05vh;             /* one layout unit; everything scales with the screen height */
+  color-scheme: dark;
+}
+:root[data-os="windows"] { --safe-left: 112px; }
+:root[data-os="macos"] { --safe-right: 118px; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--space); color: var(--text); }
+body { font-family: var(--mono); font-size: calc(var(--u) * 1.5); letter-spacing: 0.06em; -webkit-font-smoothing: antialiased; }
+p { margin: 0; }
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ------------------------------------------------------------ panels */
+.panel {
+  position: fixed;
+  right: calc(var(--safe-right) + var(--edge));
+  width: calc(var(--u) * 34);
+  padding: calc(var(--u) * 1.6) calc(var(--u) * 1.8);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.8);
+}
+.panel::before, .panel::after {  /* corner ticks like an instrument bezel */
+  content: "";
+  position: absolute;
+  width: calc(var(--u) * 1.2);
+  height: calc(var(--u) * 1.2);
+  border: 1px solid var(--cyan);
+  opacity: 0.7;
+}
+.panel::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.panel::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+.clock-panel { top: 7vh; }
+.telemetry { top: calc(7vh + var(--u) * 19); }
+
+.label { font-size: calc(var(--u) * 1.1); color: var(--dim); letter-spacing: 0.22em; }
+.sub { font-family: var(--cjk); letter-spacing: 0.1em; color: var(--dim); margin-left: 0.6em; }
+.clock { font-size: calc(var(--u) * 5.4); font-weight: 300; letter-spacing: 0.04em; line-height: 1; color: #eaf4ff; font-variant-numeric: tabular-nums; }
+.line { font-size: calc(var(--u) * 1.3); color: var(--text); }
+.dim { color: var(--dim); }
+.weather span { margin-right: 0.5em; }
+.weather [data-orbit-empty] { display: none; }
+
+.meter { display: grid; grid-template-columns: calc(var(--u) * 8.5) 1fr calc(var(--u) * 4.2); align-items: center; gap: calc(var(--u) * 1); font-size: calc(var(--u) * 1.2); }
+.meter .name { color: var(--dim); letter-spacing: 0.18em; }
+.meter .num { text-align: right; font-variant-numeric: tabular-nums; }
+.meter .bar { height: calc(var(--u) * 0.6); background: rgba(140, 190, 255, 0.1); position: relative; overflow: hidden; }
+.meter .bar i { position: absolute; inset: 0 auto 0 0; width: calc(var(--v) * 100%); background: linear-gradient(90deg, rgba(99, 230, 255, 0.35), var(--cyan)); transition: width 1.2s ease; }
+.meter.power .bar i { background: linear-gradient(90deg, rgba(255, 181, 71, 0.35), var(--amber)); }
+.meter:has(.num[data-orbit-empty]) { display: none; }
+.counts { display: flex; gap: calc(var(--u) * 2.4); color: var(--dim); font-size: calc(var(--u) * 1.15); letter-spacing: 0.16em; margin-top: calc(var(--u) * 0.4); }
+.counts b { color: var(--text); font-weight: 600; margin-right: 0.3em; }
+
+/* ------------------------------------------------------------ console */
+.console {
+  position: fixed;
+  right: calc(var(--safe-right) + var(--edge));
+  bottom: 9vh;
+  display: flex;
+  gap: calc(var(--u) * 1);
+}
+.cmd {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto;
+  gap: calc(var(--u) * 0.4);
+  min-width: calc(var(--u) * 14.5);
+  padding: calc(var(--u) * 1.2) calc(var(--u) * 1.5);
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s, opacity 0.4s, transform 0.3s;
+}
+.cmd .key { font-size: calc(var(--u) * 1); color: var(--dim); }
+.cmd .title { font-size: calc(var(--u) * 1.4); font-weight: 600; letter-spacing: 0.14em; }
+.cmd .sub { margin: 0; font-size: calc(var(--u) * 1.15); }
+.cmd:hover, .cmd:focus-visible { border-color: var(--line-strong); background: rgba(16, 28, 52, 0.72); outline: none; }
+.cmd.primary { border-color: rgba(99, 230, 255, 0.4); }
+.cmd.primary .title { color: var(--cyan); }
+.cmd.warn .title { color: var(--amber); }
+.cmd.is-running { animation: scan 1.2s linear infinite; }
+.cmd.is-done { border-color: var(--cyan); }
+.cmd.is-error { border-color: var(--red); }
+.cmd.is-armed { border-color: var(--amber); background: rgba(60, 38, 8, 0.55); animation: blink 0.9s steps(2) infinite; }
+.cmd.is-unavailable { opacity: 0.32; pointer-events: none; }
+@keyframes scan { 0% { box-shadow: inset 0 0 0 0 rgba(99, 230, 255, 0); } 50% { box-shadow: inset 0 0 calc(var(--u) * 2) 0 rgba(99, 230, 255, 0.25); } 100% { box-shadow: inset 0 0 0 0 rgba(99, 230, 255, 0); } }
+@keyframes blink { 50% { border-color: rgba(255, 181, 71, 0.25); } }
+
+.status {
+  position: fixed;
+  right: calc(var(--safe-right) + var(--edge));
+  bottom: 5vh;
+  max-width: 60vw;
+  font-size: calc(var(--u) * 1.3);
+  color: var(--cyan);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+.status .prompt { color: var(--dim); }
+.status .caret { display: inline-block; width: 0.6em; height: 1em; margin-left: 0.3em; vertical-align: -0.12em; background: var(--cyan); animation: caret 1.1s steps(2) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+
+:root[data-orbit-connection="offline"] .console { opacity: 0.4; }
+:root[data-orbit-connection="offline"] .status::after { content: "  · HELPER OFFLINE"; color: var(--amber); }
+:root.silent .panel, :root.silent .console { opacity: 0.55; transition: opacity 3s; }
+
+@media (max-aspect-ratio: 16/10) {
+  .cmd { min-width: calc(var(--u) * 11.5); }
+  .cmd .title { font-size: calc(var(--u) * 1.2); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmd.is-running, .cmd.is-armed, .status .caret { animation: none; }
+}

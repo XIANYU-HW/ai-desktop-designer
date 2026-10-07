@@ -1,0 +1,60 @@
+{
+  "id": "quit-apps",
+  "name": { "en": "Wind down", "zh-CN": "一键收工" },
+  "description": {
+    "en": "Politely asks your open apps to quit, the same as clicking their close button. Apps with unsaved work stop and ask you. Nothing is ever force-quit, and the last session can be reopened.",
+    "zh-CN": "礼貌地请打开的应用退出，等同于点它们的关闭按钮。有未保存内容的应用会停下来问你，绝不强制关闭；上一次关闭的应用可以一键重新打开。"
+  },
+  "version": "1.0.0",
+  "platforms": ["windows", "macos"],
+  "command": { "default": ["{python}", "quit_apps.py"] },
+  "timeout": 150,
+  "operations": {
+    "status": {
+      "effect": "read",
+      "description": { "en": "How many apps are open and whether a session can be reopened.", "zh-CN": "现在开着几个应用，能否重新打开上次的应用。" }
+    },
+    "preview": {
+      "effect": "read",
+      "description": { "en": "List the apps that would be asked to quit and the ones that stay.", "zh-CN": "列出会被关闭和会保留的应用。" }
+    },
+    "run": {
+      "effect": "apps",
+      "undo": "reopen",
+      "label": { "en": "Wind down", "zh-CN": "收工" },
+      "description": { "en": "Ask the listed apps to quit.", "zh-CN": "请列出的应用退出。" }
+    },
+    "reopen": {
+      "effect": "apps",
+      "label": { "en": "Reopen", "zh-CN": "重新打开" },
+      "description": { "en": "Open again the apps closed by the last wind-down.", "zh-CN": "重新打开上一次收工关闭的应用。" }
+    }
+  },
+  "params": {
+    "keep": {
+      "type": "array",
+      "default": [],
+      "description": "apps to leave open: names, .exe names or macOS bundle ids, e.g. [\"WeChat\", \"spotify.exe\"]"
+    },
+    "only": {
+      "type": "array",
+      "default": [],
+      "description": "when set, only these apps are closed"
+    },
+    "keep_music": {
+      "type": "boolean",
+      "default": true,
+      "description": "leave music players open"
+    },
+    "close_folders": {
+      "type": "boolean",
+      "default": true,
+      "description": "Windows: also close File Explorer folder windows (never Explorer itself)"
+    },
+    "wait_seconds": {
+      "type": "number",
+      "default": 12,
+      "description": "how long to wait for apps to finish quitting"
+    }
+  }
+}

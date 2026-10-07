@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "id": "deep-orbit",
+  "name": { "zh-CN": "深空轨道", "en": "Deep Orbit" },
+  "description": {
+    "zh-CN": "任务控制台视角的行星轨道。桌面上的散落文件是太空碎片，开着的应用是轨道卫星，CPU 是反应堆，电量是能源。",
+    "en": "A planet seen from mission control. Loose desktop files drift as space debris, open apps circle as satellites, the CPU is the reactor and the battery is power."
+  },
+  "author": "Orbit Desktop",
+  "version": "1.0.0",
+  "language": "en",
+  "entry": "index.html",
+  "palette": {
+    "background": "#05070D",
+    "panel": "#0A101E",
+    "text": "#CFE3FF",
+    "accent": "#63E6FF",
+    "warning": "#FFB547"
+  },
+  "concept": {
+    "world": "Mission control watching a quiet planet: orbits, satellites, a debris field, telemetry.",
+    "mood": "Calm, precise, nocturnal. Thin lines, monospace, one cyan accent, amber only for warnings.",
+    "type": "A monospace face in capitals for instrument labels, with small Chinese subtitles when the user reads Chinese.",
+    "motion": "Everything orbits at its own slow speed; the star field drifts in parallax. Actions are captures, launches and shutdowns, never flashes.",
+    "metaphors": {
+      "tidy-files.pending": "Each loose file on the desktop is one speck of debris",
+      "tidy-files.run": "CAPTURE DEBRIS 收拢碎片: each filed document is pulled into the archive orbit",
+      "tidy-files.undo": "RELEASE 释放: the captured objects drift back out",
+      "tidy-files.open": "ARCHIVE BAY 档案舱: open the folder where they were filed",
+      "quit-apps.open": "Each open app is a satellite with its light on",
+      "quit-apps.run": "SILENT RUNNING 静默航行: satellites go dark one by one as apps close",
+      "quit-apps.reopen": "WAKE ALL 全部唤醒: the lights come back",
+      "system.cpu": "REACTOR load",
+      "system.memory": "CARGO bay",
+      "system.disk": "HOLD",
+      "system.battery": "POWER",
+      "weather": "SURFACE conditions at home",
+      "clock": "Mission clock with the day of the year"
+    }
+  },
+  "uses": {
+    "actions": ["tidy-files", "quit-apps"],
+    "data": ["clock", "weather", "system"]
+  },
+  "performance": { "fps": 30 }
+}

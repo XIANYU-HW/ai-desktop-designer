@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbit Desktop · Gallery</title>
+<style>
+  :root {
+    --bg: #f4f4f1; --panel: #ffffff; --ink: #17181b; --muted: #676a72; --line: #dedfe3;
+    --accent: #2f5bd3; --accent-ink: #ffffff; --ok: #2e7d4f;
+    color-scheme: light;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111215; --panel: #1a1c20; --ink: #ecedf0; --muted: #9a9ea8; --line: #2b2e35; --accent: #7aa2ff; --accent-ink: #0d1020; --ok: #7fd3a1; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); padding: 40px 20px 64px; }
+  main { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  header { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -0.01em; }
+  header p { margin: 6px 0 0; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .shot { aspect-ratio: 16 / 9; background: #0003 center / cover no-repeat; border-bottom: 1px solid var(--line); }
+  .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .name { font-size: 17px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+  .badge { font-size: 12px; font-weight: 600; color: var(--ok); border: 1px solid currentColor; border-radius: 99px; padding: 1px 8px; }
+  .desc { color: var(--muted); font-size: 14px; line-height: 1.55; flex: 1; }
+  .row { display: flex; gap: 8px; margin-top: 4px; }
+  button, a.button { font: inherit; font-size: 14px; border-radius: 7px; padding: 7px 14px; cursor: pointer; text-decoration: none; border: 1px solid var(--line); background: transparent; color: var(--ink); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button:disabled { opacity: .55; cursor: default; }
+  button:focus-visible, a.button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  section h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 14px; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-family: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace; white-space: nowrap; }
+  .muted { color: var(--muted); }
+  #note { min-height: 1.4em; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1 id="title">Orbit Desktop</h1>
+      <p id="subtitle"></p>
+    </div>
+    <div id="note" role="status"></div>
+  </header>
+  <div class="grid" id="themes"></div>
+  <section>
+    <h2 id="actions-title">Actions</h2>
+    <table id="actions"></table>
+  </section>
+</main>
+<script>
+(function () {
+  var token = (document.querySelector('meta[name="orbit-token"]') || {}).content || '';
+  var lang = ((document.querySelector('meta[name="orbit-lang"]') || {}).content || navigator.language || 'en').toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en';
+  function L(zh, en) { return lang === 'zh' ? zh : en; }
+  function api(path, body) {
+    return fetch(path, {
+      method: body ? 'POST' : 'GET',
+      headers: Object.assign({ 'X-Orbit-Token': token }, body ? { 'Content-Type': 'application/json' } : {}),
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (r) { return r.json(); });
+  }
+  function el(tag, attrs, text) {
+    var node = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) { node.setAttribute(k, attrs[k]); });
+    if (text != null) node.textContent = text;
+    return node;
+  }
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.getElementById('subtitle').textContent = L('选择一个主题放到桌面上。主题会立刻替换桌面上的页面。', 'Pick a theme for your desktop. It replaces the page on your desktop right away.');
+  document.getElementById('actions-title').textContent = L('已安装的功能', 'Installed actions');
+
+  function render(state) {
+    var grid = document.getElementById('themes');
+    grid.innerHTML = '';
+    state.themes.forEach(function (theme) {
+      var card = el('article', { class: 'card' });
+      var shot = el('div', { class: 'shot', role: 'img', 'aria-label': theme.name });
+      if (theme.has_preview) shot.style.backgroundImage = 'url(/themes/' + theme.id + '/preview.png)';
+      else shot.style.background = 'linear-gradient(135deg,' + (theme.palette.background || '#333') + ',' + (theme.palette.accent || '#777') + ')';
+      var body = el('div', { class: 'body' });
+      var name = el('div', { class: 'name' }, theme.name);
+      if (theme.id === state.active_theme) name.appendChild(el('span', { class: 'badge' }, L('使用中', 'In use')));
+      body.appendChild(name);
+      body.appendChild(el('div', { class: 'desc' }, theme.description || ''));
+      var row = el('div', { class: 'row' });
+      var use = el('button', { class: 'primary', type: 'button' }, L('使用', 'Use'));
+      use.disabled = theme.id === state.active_theme;
+      use.addEventListener('click', function () {
+        use.disabled = true;
+        api('/api/theme/activate', { id: theme.id }).then(function () {
+          document.getElementById('note').textContent = L('已切换到「' + theme.name + '」', 'Switched to ' + theme.name);
+          return api('/api/state').then(render);
+        });
+      });
+      var preview = el('a', { class: 'button', href: '/themes/' + theme.id + '/', target: '_blank', rel: 'noopener' }, L('预览', 'Preview'));
+      row.appendChild(use);
+      row.appendChild(preview);
+      body.appendChild(row);
+      card.appendChild(shot);
+      card.appendChild(body);
+      grid.appendChild(card);
+    });
+    var table = document.getElementById('actions');
+    table.innerHTML = '';
+    Object.keys(state.actions).forEach(function (id) {
+      var a = state.actions[id];
+      var tr = el('tr');
+      tr.appendChild(el('td', {}, id));
+      var info = el('td');
+      info.appendChild(el('div', {}, a.name + (a.supported ? '' : L('（当前系统不支持）', ' (not on this system)'))));
+      info.appendChild(el('div', { class: 'muted' }, a.description));
+      tr.appendChild(info);
+      tr.appendChild(el('td', { class: 'muted' }, Object.keys(a.operations).join(' · ')));
+      table.appendChild(tr);
+    });
+  }
+  api('/api/state').then(render).catch(function () {
+    document.getElementById('note').textContent = L('无法连接桌面助手。', 'Cannot reach the desktop helper.');
+  });
+})();
+</script>
+</body>
+</html>

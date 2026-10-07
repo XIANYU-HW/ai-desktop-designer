@@ -1,0 +1,31 @@
+{
+  "id": "open-path",
+  "name": { "en": "Open", "zh-CN": "打开" },
+  "description": {
+    "en": "Opens a folder, a document or a web address chosen by the theme, such as your Documents folder or a project site.",
+    "zh-CN": "打开主题指定的文件夹、文档或网址，比如“文稿”文件夹或常用网站。"
+  },
+  "version": "1.0.0",
+  "platforms": ["windows", "macos", "linux"],
+  "command": { "default": ["{python}", "open_path.py"] },
+  "timeout": 20,
+  "operations": {
+    "run": {
+      "effect": "open",
+      "label": { "en": "Open", "zh-CN": "打开" },
+      "description": { "en": "Open the target.", "zh-CN": "打开目标。" }
+    }
+  },
+  "params": {
+    "path": {
+      "type": "string",
+      "default": "{documents}",
+      "description": "a folder or file ({desktop}, {documents}, {downloads}, {pictures}, {music}, {videos}, {home}, ~ work) or an https:// address"
+    },
+    "create": {
+      "type": "boolean",
+      "default": false,
+      "description": "create the folder if it does not exist yet"
+    }
+  }
+}

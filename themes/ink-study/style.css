@@ -1,0 +1,180 @@
+/* 墨痕书房 · Ink Study
+   Layout: the right edge is a colophon read right-to-left (title, seal, almanac);
+   the desk of paper slips sits bottom-right; the left stays open for desktop icons. */
+:root {
+  --paper: #ece5d4;
+  --paper-hi: #f4efe3;
+  --ink: #1d2024;
+  --ink-soft: rgba(29, 32, 36, 0.64);
+  --ink-faint: rgba(29, 32, 36, 0.16);
+  --seal: #b23a2a;
+  --lamp: #e2a74a;
+  --shadow: rgba(40, 32, 20, 0.12);
+  --kai: "KaiTi", "STKaiti", "Kaiti SC", "Kaiti TC", "BiauKai", "楷体", "Songti SC", "SimSun", serif;
+  --safe-left: 0px;
+  --safe-right: 0px;
+  --edge: 4.6vw;
+  color-scheme: light;
+}
+:root[data-os="windows"] { --safe-left: 112px; }  /* desktop icons start top-left on Windows */
+:root[data-os="macos"] { --safe-right: 118px; }   /* and top-right on macOS */
+
+:root[data-daypart="dawn"] { --paper: #efe1cf; --paper-hi: #f6ece0; --shadow: rgba(80, 48, 24, 0.12); }
+:root[data-daypart="dusk"] { --paper: #e9d6bb; --paper-hi: #f1e3cd; --shadow: rgba(80, 48, 24, 0.14); }
+:root[data-daypart="night"] {
+  --paper: #1c1e23;
+  --paper-hi: #25282e;
+  --ink: #e8e3d4;
+  --ink-soft: rgba(232, 227, 212, 0.66);
+  --ink-faint: rgba(232, 227, 212, 0.16);
+  --seal: #c8553f;
+  --shadow: rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--paper); color: var(--ink); }
+body { font-family: var(--kai); -webkit-font-smoothing: antialiased; transition: background 2s ease, color 2s ease; }
+p, h1 { margin: 0; font-weight: normal; }
+
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ------------------------------------------------------------ colophon */
+.colophon {
+  position: fixed;
+  top: 8vh;
+  right: calc(var(--safe-right) + var(--edge));
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 2.2vh;
+}
+.title {
+  writing-mode: vertical-rl;
+  font-size: 7.4vh;
+  letter-spacing: 1.5vh;
+  line-height: 1;
+  text-shadow: 0 0 2vh var(--paper);
+}
+.seal {
+  writing-mode: vertical-rl;
+  margin-top: 26vh;
+  margin-right: -1.2vh;
+  border: 0.32vh solid var(--seal);
+  color: var(--seal);
+  font-size: 2.6vh;
+  line-height: 1.05;
+  letter-spacing: 0.2vh;
+  padding: 0.6vh 0.45vh;
+  border-radius: 0.5vh;
+  transform: rotate(-3deg);
+  filter: url(#stamp-edge);
+  opacity: 0.9;
+}
+.almanac {
+  writing-mode: vertical-rl;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6vh;
+  padding-top: 0.6vh;
+  color: var(--ink-soft);
+}
+.almanac p { white-space: nowrap; }
+.shichen { font-size: 3.2vh; color: var(--ink); letter-spacing: 0.5vh; }
+.time { font-size: 2vh; letter-spacing: 0.3vh; }
+.time .tcy { text-combine-upright: all; -webkit-text-combine: horizontal; }
+.date, .weather { font-size: 1.85vh; letter-spacing: 0.35vh; }
+
+/* ------------------------------------------------------------ desk of slips */
+.desk {
+  position: fixed;
+  right: calc(var(--safe-right) + var(--edge));
+  bottom: 10.5vh;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  gap: 1.3vh;
+}
+.slip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 6.8vh;
+  height: 22vh;
+  padding: 2.2vh 0 1.8vh;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.3vh;
+  background: linear-gradient(180deg, var(--paper-hi), var(--paper));
+  box-shadow: 0 0.8vh 2vh var(--shadow);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, opacity 0.5s ease, width 0.5s ease, margin 0.5s ease, padding 0.5s ease;
+}
+.slip::before {           /* a hair-thin ruled margin, like letter paper */
+  content: "";
+  position: absolute;
+  inset: 1.1vh 0.9vh;
+  border-left: 1px solid var(--ink-faint);
+  border-right: 1px solid var(--ink-faint);
+  pointer-events: none;
+}
+.slip-main { height: 26vh; width: 7.6vh; }
+.slip-minor { height: 18vh; }
+.slip-name, .slip-note { writing-mode: vertical-rl; white-space: nowrap; position: relative; }
+.slip-name { font-size: 3.3vh; letter-spacing: 0.7vh; }
+.slip-note { font-size: 1.45vh; letter-spacing: 0.25vh; color: var(--ink-soft); }
+.slip:hover, .slip:focus-visible { transform: translateY(-0.9vh); box-shadow: 0 1.4vh 2.6vh var(--shadow); outline: none; }
+.slip:focus-visible { border-color: var(--seal); }
+.slip.is-running { animation: breathe 1.8s ease-in-out infinite; }
+.slip.is-done .slip-name { color: var(--seal); transition: color 0.4s; }
+.slip.is-error { border-color: var(--seal); }
+.slip.is-armed { border-color: var(--lamp); box-shadow: 0 0 0 1px var(--lamp), 0 0 4vh rgba(226, 167, 74, 0.45); }
+.slip.is-unavailable { opacity: 0.42; pointer-events: none; }
+.slip-minor.is-unavailable {   /* undo and reopen only appear when there is something to undo */
+  opacity: 0;
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  margin: 0 -0.65vh;
+  border-width: 0;
+}
+@keyframes breathe { 50% { transform: translateY(-0.6vh); box-shadow: 0 1.6vh 3vh var(--shadow); } }
+
+/* ------------------------------------------------------------ status line */
+.status {
+  position: fixed;
+  right: calc(var(--safe-right) + var(--edge));
+  bottom: 5.6vh;
+  max-width: 46vw;
+  font-size: 1.7vh;
+  letter-spacing: 0.15vh;
+  color: var(--ink-soft);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.status:not(:empty)::before { content: "— "; color: var(--seal); }
+
+/* ------------------------------------------------------------ English labels */
+:root:lang(en) .title { font-size: 5.6vh; letter-spacing: 0.6vh; }
+:root:lang(en) .slip-name { font-size: 2.4vh; letter-spacing: 0.2vh; }
+:root:lang(en) .slip-note { font-size: 1.3vh; letter-spacing: 0.05vh; }
+
+/* ------------------------------------------------------------ offline helper */
+:root[data-orbit-connection="offline"] .desk { opacity: 0.45; }
+:root[data-orbit-connection="offline"] .status::after { content: " 桌面助手未连接"; }
+:root[data-orbit-connection="offline"]:lang(en) .status::after { content: " helper offline"; }
+
+@media (prefers-reduced-motion: reduce) {
+  .slip, body { transition: none; }
+  .slip.is-running { animation: none; outline: 1px dashed var(--ink-soft); }
+}
+@media (max-aspect-ratio: 4/3) {
+  .colophon { top: 5vh; }
+  .desk { bottom: 8vh; }
+}

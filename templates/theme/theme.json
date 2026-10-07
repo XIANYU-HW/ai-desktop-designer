@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "my-theme",
+  "name": { "zh-CN": "我的主题", "en": "My theme" },
+  "description": { "zh-CN": "一句话描述这个桌面的世界。", "en": "One sentence about this desktop's world." },
+  "author": "",
+  "version": "0.1.0",
+  "language": "zh-CN",
+  "entry": "index.html",
+  "palette": { "background": "#101114", "surface": "#1A1C21", "text": "#E9E7E1", "muted": "#8D8A84", "accent": "#D9A55B" },
+  "concept": {
+    "world": "Describe one concrete world: a place, an era, a craft, an instrument.",
+    "mood": "How it should feel by day and at night.",
+    "type": "The display face and the text face, and why they belong to this world.",
+    "motion": "What moves slowly all the time, and what moves when a function runs.",
+    "metaphors": {
+      "tidy-files.run": "What filing loose desktop files looks like in this world",
+      "tidy-files.undo": "And putting them back",
+      "tidy-files.pending": "What a loose file is in this world",
+      "quit-apps.run": "What winding down the day looks like",
+      "quit-apps.reopen": "And waking it up again",
+      "clock": "How this world tells time",
+      "weather": "How this world shows the weather",
+      "system.battery": "What the battery is in this world"
+    }
+  },
+  "uses": { "actions": ["tidy-files", "quit-apps"], "data": ["clock", "weather", "system"] },
+  "performance": { "fps": 24 }
+}

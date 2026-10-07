@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Defrag 95 · 磁盘整理 95</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <section class="win defrag" aria-labelledby="defrag-title">
+    <header class="title-bar">
+      <span class="title-text"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="3" width="14" height="10" fill="#c0c0c0" stroke="#000"/><rect x="3" y="5" width="3" height="2" fill="#0000a8"/><rect x="7" y="5" width="2" height="2" fill="#00a8a8"/><rect x="10" y="5" width="3" height="2" fill="#0000a8"/><rect x="3" y="8" width="2" height="2" fill="#00a8a8"/><rect x="6" y="8" width="4" height="2" fill="#0000a8"/></svg><span id="defrag-title" data-zh="磁盘碎片整理程序 - 桌面 (C:)">Disk Defragmenter - Desktop (C:)</span></span>
+      <span class="title-buttons" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span>
+    </header>
+    <div class="win-body">
+      <canvas id="map" class="sunken map" aria-label="Cluster map"></canvas>
+      <div class="progress-row">
+        <div class="sunken progress"><div class="progress-fill" id="progress-fill"></div></div>
+        <span id="progress-text" class="progress-text" data-zh="完成 0%">0% complete</span>
+      </div>
+      <p class="moving" id="moving">&nbsp;</p>
+      <div class="buttons">
+        <button class="w95 default" data-orbit-action="tidy-files" data-orbit-op="run"><span data-zh="开始整理(D)">Defragment</span></button>
+        <button class="w95" data-orbit-action="tidy-files" data-orbit-op="undo"><span data-zh="撤销(U)">Undo</span></button>
+        <button class="w95" data-orbit-action="tidy-files" data-orbit-op="open"><span data-zh="打开归档(O)">Open Archive</span></button>
+        <button class="w95" id="legend-toggle" type="button"><span data-zh="图例(L)">Legend</span></button>
+      </div>
+      <div class="legend sunken-light" id="legend" hidden>
+        <span><i style="background:#0000a8"></i><b data-zh="已整理的数据">Optimized data</b></span>
+        <span><i style="background:#00a8a8"></i><b data-zh="散落的文件（待整理）">Fragmented (loose) files</b></span>
+        <span><i style="background:#a80000"></i><b data-zh="不可移动的数据">Data that will not be moved</b></span>
+        <span><i style="background:#ffffff"></i><b data-zh="可用空间">Free space</b></span>
+        <span><i style="background:#00c000"></i><b data-zh="正在读取">Being read</b></span>
+        <span><i style="background:#ff4040"></i><b data-zh="正在写入">Being written</b></span>
+      </div>
+    </div>
+    <footer class="status-bar">
+      <span class="cell grow" id="frag-summary">&nbsp;</span>
+      <span class="cell" data-orbit-status="tidy-files" data-zh="就绪">Ready</span>
+    </footer>
+  </section>
+
+  <section class="win meter" aria-labelledby="meter-title">
+    <header class="title-bar">
+      <span class="title-text"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" fill="#c0c0c0" stroke="#000"/><rect x="4" y="9" width="2" height="3" fill="#008000"/><rect x="7" y="6" width="2" height="6" fill="#008000"/><rect x="10" y="4" width="2" height="8" fill="#008000"/></svg><span id="meter-title" data-zh="资源状况">Resource Meter</span></span>
+      <span class="title-buttons" aria-hidden="true"><i>_</i><i>×</i></span>
+    </header>
+    <div class="win-body rows">
+      <div class="row"><span class="row-name" data-zh="处理器">CPU</span><span class="sunken segs" style="--v: var(--orbit-cpu, 0)"><i></i></span><span class="row-num" data-orbit-system="cpu"></span></div>
+      <div class="row"><span class="row-name" data-zh="内存">Memory</span><span class="sunken segs" style="--v: var(--orbit-memory, 0)"><i></i></span><span class="row-num" data-orbit-system="memory"></span></div>
+      <div class="row"><span class="row-name" data-zh="磁盘">Disk</span><span class="sunken segs" style="--v: var(--orbit-disk, 0)"><i></i></span><span class="row-num" data-orbit-system="disk"></span></div>
+      <div class="row battery"><span class="row-name" data-zh="电池">Battery</span><span class="sunken segs" style="--v: var(--orbit-battery, 0)"><i></i></span><span class="row-num" data-orbit-system="battery"></span></div>
+    </div>
+    <footer class="status-bar">
+      <span class="cell grow"><span data-orbit-weather="temperature"></span> <span data-orbit-weather="condition"></span></span>
+      <span class="cell"><span class="disk-light" id="disk-light"></span><span data-orbit-clock="{h}:{mm} {ampm}"></span></span>
+    </footer>
+  </section>
+
+  <section class="win close-program" aria-labelledby="close-title">
+    <header class="title-bar">
+      <span class="title-text"><span id="close-title" data-zh="关闭程序">Close Program</span></span>
+      <span class="title-buttons" aria-hidden="true"><i>?</i><i>×</i></span>
+    </header>
+    <div class="win-body">
+      <ul class="sunken listbox" id="program-list"></ul>
+      <p class="note" data-zh="提示：“全部结束”会请每个程序正常退出，未保存的内容不会被丢弃。">Note: End All politely asks each program to quit. Unsaved work is never discarded.</p>
+      <div class="buttons">
+        <button class="w95" data-orbit-action="quit-apps" data-orbit-op="run"><span data-zh="全部结束(E)">End All</span></button>
+        <button class="w95" data-orbit-action="quit-apps" data-orbit-op="reopen"><span data-zh="重新打开(R)">Reopen</span></button>
+        <button class="w95" type="button" id="cancel"><span data-zh="取消">Cancel</span></button>
+      </div>
+    </div>
+    <footer class="status-bar"><span class="cell grow" data-orbit-status="quit-apps">&nbsp;</span></footer>
+  </section>
+
+</div>
+<script src="../../sdk/orbit.js"></script>
+<script src="scene.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "id": "my-action",
+  "name": { "en": "My action", "zh-CN": "我的功能" },
+  "description": { "en": "What it does, in one sentence.", "zh-CN": "一句话说明它做什么。" },
+  "version": "0.1.0",
+  "platforms": ["windows", "macos", "linux"],
+  "command": { "default": ["{python}", "action.py"] },
+  "timeout": 90,
+  "operations": {
+    "status": { "effect": "read", "description": { "en": "Is there anything to do?", "zh-CN": "有没有要做的事。" } },
+    "preview": { "effect": "read", "description": { "en": "What would happen, without doing it.", "zh-CN": "会发生什么，不做改动。" } },
+    "run": { "effect": "files", "undo": "undo", "label": { "en": "Run", "zh-CN": "执行" } },
+    "undo": { "effect": "files", "label": { "en": "Undo", "zh-CN": "撤销" } }
+  },
+  "params": {
+    "folder": { "type": "string", "default": "{desktop}", "description": "the folder to work on" }
+  }
+}

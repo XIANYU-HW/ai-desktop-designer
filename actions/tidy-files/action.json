@@ -1,0 +1,76 @@
+{
+  "id": "tidy-files",
+  "name": { "en": "Tidy files", "zh-CN": "一键收纳" },
+  "description": {
+    "en": "Moves loose files from the desktop (or another folder) into category folders. Every run is journaled and can be undone.",
+    "zh-CN": "把桌面（或其他文件夹）上散落的文件按类别收进文件夹。每次都有记录，可以一键撤销。"
+  },
+  "version": "1.0.0",
+  "platforms": ["windows", "macos", "linux"],
+  "command": { "default": ["{python}", "tidy.py"] },
+  "timeout": 300,
+  "operations": {
+    "status": {
+      "effect": "read",
+      "description": { "en": "How many items are waiting and whether the last run can be undone.", "zh-CN": "还有多少散落文件，上一次能否撤销。" }
+    },
+    "preview": {
+      "effect": "read",
+      "description": { "en": "List what would move where, without moving anything.", "zh-CN": "列出会被移到哪里，不做任何改动。" }
+    },
+    "run": {
+      "effect": "files",
+      "undo": "undo",
+      "label": { "en": "Tidy", "zh-CN": "收纳" },
+      "description": { "en": "Move the loose files into category folders.", "zh-CN": "把散落文件收进分类文件夹。" }
+    },
+    "undo": {
+      "effect": "files",
+      "label": { "en": "Undo", "zh-CN": "撤销" },
+      "description": { "en": "Put the files from the most recent run back where they were.", "zh-CN": "把最近一次收纳的文件放回原处。" }
+    },
+    "open": {
+      "effect": "open",
+      "label": { "en": "Open archive", "zh-CN": "打开收纳夹" },
+      "description": { "en": "Open the folder the files were filed into.", "zh-CN": "打开收纳文件所在的文件夹。" }
+    }
+  },
+  "params": {
+    "source": {
+      "type": "string",
+      "default": "desktop",
+      "description": "desktop, downloads, documents, or a folder inside your home folder"
+    },
+    "library": {
+      "type": "string",
+      "default": "",
+      "description": "where the category folders go; empty means Documents/Desktop Archive (桌面收纳 in Chinese)"
+    },
+    "preset": {
+      "type": "string",
+      "default": "",
+      "enum": ["", "zh-CN", "en"],
+      "description": "language of the category folder names; empty follows the user's language"
+    },
+    "categories": {
+      "type": "array",
+      "default": null,
+      "description": "custom categories: [{\"name\": \"Invoices\", \"extensions\": [\".pdf\"], \"keywords\": [\"invoice\"]}]"
+    },
+    "group_by_month": {
+      "type": "boolean",
+      "default": false,
+      "description": "file into Category/2026-10 instead of Category"
+    },
+    "include_folders": {
+      "type": "boolean",
+      "default": false,
+      "description": "also move loose folders (off by default: folders are often live projects)"
+    },
+    "min_age_seconds": {
+      "type": "number",
+      "default": 30,
+      "description": "leave files changed in the last N seconds alone (downloads in progress)"
+    }
+  }
+}

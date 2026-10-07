@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} · Python ${{ matrix.python }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        python: ["3.12"]
+        include:
+          - os: ubuntu-latest
+            python: "3.9"
+    runs-on: ${{ matrix.os }}
+    env:
+      ORBIT_WORKSPACE: ${{ github.workspace }}/.ci-workspace
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Unit and integration tests
+        working-directory: tests
+        run: python -m unittest -v
+
+      - name: JavaScript syntax
+        if: runner.os == 'Linux'
+        run: for f in sdk/orbit.js themes/*/scene.js templates/theme/scene.js; do node --check "$f"; done
+
+      - name: Doctor
+        run: |
+          python runtime/orbit.py init --lang en
+          python runtime/orbit.py doctor
+
+      - name: Render previews in a real browser
+        if: runner.os != 'Linux'
+        shell: bash
+        run: |
+          python runtime/orbit.py start
+          mkdir -p previews
+          for t in ink-study deep-orbit defrag-95; do
+            python runtime/orbit.py snapshot "$t" --out "previews/$t-en-day.png" --query "lang=en&daypart=day"
+            python runtime/orbit.py snapshot "$t" --out "previews/$t-zh-night.png" --query "lang=zh&daypart=night&weather=rain"
+            python runtime/orbit.py snapshot "$t" --out "previews/$t-1366.png" --size 1366x768
+          done
+          python runtime/orbit.py stop
+
+      - name: Upload previews
+        if: runner.os != 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: previews-${{ runner.os }}
+          path: previews/

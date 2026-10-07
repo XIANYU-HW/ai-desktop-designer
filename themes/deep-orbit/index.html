@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep Orbit · 深空轨道</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<aside class="panel clock-panel">
+  <p class="label">MISSION CLOCK <span class="sub" data-zh="任务时钟"></span></p>
+  <p class="clock" data-orbit-clock="{HH}:{mm}:{ss}"></p>
+  <p class="line">DAY <span data-orbit-clock="{doy}"></span> · <span data-orbit-clock="{YYYY}.{MM}.{DD}"></span></p>
+  <p class="line weather">
+    <span class="dim">SURFACE</span>
+    <span data-orbit-weather="place"></span>
+    <span data-orbit-weather="temperature"></span>
+    <span data-orbit-weather="condition"></span>
+  </p>
+</aside>
+
+<aside class="panel telemetry">
+  <p class="label">TELEMETRY <span class="sub" data-zh="遥测"></span></p>
+  <div class="meter" style="--v: var(--orbit-cpu, 0)"><span class="name">REACTOR</span><span class="bar"><i></i></span><span class="num" data-orbit-system="cpu"></span></div>
+  <div class="meter" style="--v: var(--orbit-memory, 0)"><span class="name">CARGO</span><span class="bar"><i></i></span><span class="num" data-orbit-system="memory"></span></div>
+  <div class="meter" style="--v: var(--orbit-disk, 0)"><span class="name">HOLD</span><span class="bar"><i></i></span><span class="num" data-orbit-system="disk"></span></div>
+  <div class="meter power" style="--v: var(--orbit-battery, 0)"><span class="name">POWER</span><span class="bar"><i></i></span><span class="num" data-orbit-system="battery"></span></div>
+  <p class="line counts">
+    <span><b data-orbit-value="tidy-files.pending">–</b> DEBRIS</span>
+    <span><b data-orbit-value="quit-apps.open">–</b> SATELLITES</span>
+  </p>
+</aside>
+
+<nav class="console" aria-label="Commands">
+  <button class="cmd primary" data-orbit-action="tidy-files" data-orbit-op="run">
+    <span class="key">01</span><span class="title">CAPTURE DEBRIS</span><span class="sub" data-zh="收拢碎片"></span>
+  </button>
+  <button class="cmd" data-orbit-action="tidy-files" data-orbit-op="undo">
+    <span class="key">02</span><span class="title">RELEASE</span><span class="sub" data-zh="释放"></span>
+  </button>
+  <button class="cmd" data-orbit-action="tidy-files" data-orbit-op="open">
+    <span class="key">03</span><span class="title">ARCHIVE BAY</span><span class="sub" data-zh="档案舱"></span>
+  </button>
+  <button class="cmd warn" data-orbit-action="quit-apps" data-orbit-op="run">
+    <span class="key">04</span><span class="title">SILENT RUNNING</span><span class="sub" data-zh="静默航行"></span>
+  </button>
+  <button class="cmd" data-orbit-action="quit-apps" data-orbit-op="reopen">
+    <span class="key">05</span><span class="title">WAKE ALL</span><span class="sub" data-zh="全部唤醒"></span>
+  </button>
+</nav>
+<p class="status"><span class="prompt">&gt;</span> <span data-orbit-status>STANDING BY</span><span class="caret"></span></p>
+
+<script src="../../sdk/orbit.js"></script>
+<script src="scene.js"></script>
+</body>
+</html>

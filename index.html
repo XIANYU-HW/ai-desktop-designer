@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbit Desktop</title>
+<meta name="description" content="A desktop where wallpaper, motion, widgets and one-click functions belong to one designed world.">
+<style>
+  /* Layout: a quiet column; the three worlds carry the page. */
+  :root {
+    --bg: #0e0f12; --fg: #ecebe6; --muted: #9a978f; --line: #26282e; --accent: #d9a55b;
+    --display: "Songti SC", "STSong", "SimSun", "Noto Serif SC", Georgia, serif;
+    --body: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); line-height: 1.7; padding-inline: 20px; padding-block: 56px 72px; }
+  main { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
+  h1 { font-family: var(--display); font-weight: 500; font-size: clamp(34px, 6vw, 60px); line-height: 1.15; margin: 0 0 14px; text-wrap: balance; }
+  .lede { color: var(--muted); max-width: 62ch; margin: 0; font-size: 17px; }
+  .lede + .lede { margin-top: 6px; font-size: 15px; }
+  .worlds { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .world { display: flex; flex-direction: column; gap: 10px; color: inherit; text-decoration: none; min-width: 0; }
+  .world img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--line); border-radius: 6px; display: block; transition: transform .3s ease, border-color .3s ease; }
+  .world:hover img, .world:focus-visible img { transform: translateY(-3px); border-color: var(--accent); }
+  .world:focus-visible { outline: none; }
+  .world h2 { font-family: var(--display); font-weight: 500; font-size: 21px; margin: 4px 0 0; }
+  .world p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  .world .go { font-size: 13px; color: var(--accent); letter-spacing: .04em; }
+  section h3 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  pre { margin: 0; background: #15171b; border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .actions a { color: var(--bg); background: var(--fg); text-decoration: none; padding: 9px 16px; border-radius: 6px; font-size: 14px; }
+  .actions a.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+  footer { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Orbit Desktop</h1>
+    <p class="lede">让桌面成为一个完整的设计：壁纸、动效、小组件和一键功能属于同一个世界。散落的文件会变成太空碎片，收工会变成掩灯，整理桌面就是磁盘碎片整理。</p>
+    <p class="lede">A desktop where wallpaper, motion, widgets and one-click functions belong to one designed world. A skill for AI agents, for Windows and macOS.</p>
+  </header>
+
+  <div class="worlds">
+    <a class="world" href="themes/ink-study/?demo">
+      <img src="themes/ink-study/preview.png" alt="墨痕书房：雾中远山、竖排楷体与纸笺">
+      <h2>墨痕书房 · Ink Study</h2>
+      <p>收卷、展卷、掩灯。文件化作纸笺飞入书卷，电量是灯油。</p>
+      <span class="go">打开演示 · Open the demo →</span>
+    </a>
+    <a class="world" href="themes/deep-orbit/?demo">
+      <img src="themes/deep-orbit/preview.png" alt="深空轨道：行星、轨道与任务控制台">
+      <h2>深空轨道 · Deep Orbit</h2>
+      <p>散落文件是碎片，开着的应用是卫星，收工就是静默航行。</p>
+      <span class="go">打开演示 · Open the demo →</span>
+    </a>
+    <a class="world" href="themes/defrag-95/?demo">
+      <img src="themes/defrag-95/preview.png" alt="磁盘整理 95：Windows 95 风格的碎片整理窗口">
+      <h2>磁盘整理 95 · Defrag 95</h2>
+      <p>整理桌面就是碎片整理，收工是“关闭程序”对话框。</p>
+      <span class="go">打开演示 · Open the demo →</span>
+    </a>
+  </div>
+
+  <section>
+    <h3>作为 Skill 使用 · Use it as a skill</h3>
+    <pre>git clone https://github.com/XIANYU-HW/orbit-desktop ~/.claude/skills/orbit-desktop     # Claude Code
+git clone https://github.com/XIANYU-HW/orbit-desktop ~/.agents/skills/orbit-desktop     # Codex
+
+“用 orbit-desktop 给我设计一个雨夜图书馆风格的桌面，要有一键收纳和一键收工。”</pre>
+  </section>
+
+  <div class="actions">
+    <a href="https://github.com/XIANYU-HW/orbit-desktop">GitHub</a>
+    <a class="ghost" href="https://github.com/XIANYU-HW/orbit-desktop/archive/refs/heads/main.zip">下载 · Download ZIP</a>
+  </div>
+
+  <footer>演示使用示例数据，按钮不会改动你的电脑。The demos use sample data; nothing on your computer changes.</footer>
+</main>
+</body>
+</html>

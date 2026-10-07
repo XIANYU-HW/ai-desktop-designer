@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "defrag-95",
+  "name": { "zh-CN": "磁盘整理 95", "en": "Defrag 95" },
+  "description": {
+    "zh-CN": "九十年代的 Windows 桌面。收纳桌面就是磁盘碎片整理，一键收工就是“关闭程序”对话框，系统状态放进“资源状况”。",
+    "en": "A 1995 Windows desktop. Tidying the desktop is literally defragmentation, winding down is the Close Program dialog, and system readings live in the Resource Meter."
+  },
+  "author": "Orbit Desktop",
+  "version": "1.0.0",
+  "language": "en",
+  "entry": "index.html",
+  "palette": {
+    "background": "#008080",
+    "face": "#C0C0C0",
+    "title": "#000080",
+    "optimized": "#0000A8",
+    "fragmented": "#00A8A8"
+  },
+  "concept": {
+    "world": "A Windows 95 desktop at the end of a work day: teal background, grey bevelled windows, a cluster map.",
+    "mood": "Nostalgic and tactile. Everything is a window you could have used in 1995, and each one really works.",
+    "type": "MS Sans Serif / Tahoma at small sizes; SimSun for Chinese, as the Chinese edition of Windows 95 used.",
+    "motion": "Only what the old programs did: blocks being read and written, a segmented progress bar, a blinking disk light.",
+    "metaphors": {
+      "tidy-files.pending": "Each loose desktop file is a fragmented file scattered across the cluster map",
+      "tidy-files.run": "Defragment: blocks are read (green), written (red) and settle as optimized data (blue)",
+      "tidy-files.undo": "Undo: the files scatter back",
+      "tidy-files.open": "Open Archive",
+      "quit-apps.run": "End All in the Close Program dialog, which lists the programs it will ask to quit",
+      "quit-apps.reopen": "Reopen",
+      "system": "The Resource Meter: CPU, memory, disk and battery as segmented bars",
+      "clock": "The tray clock in the status bar",
+      "weather": "A line in the Resource Meter status bar"
+    }
+  },
+  "uses": {
+    "actions": ["tidy-files", "quit-apps"],
+    "data": ["clock", "weather", "system"]
+  },
+  "performance": { "fps": 20 }
+}

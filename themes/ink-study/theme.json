@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "ink-study",
+  "name": { "zh-CN": "墨痕书房", "en": "Ink Study" },
+  "description": {
+    "zh-CN": "雾中远山与一叶扁舟。散落的文件化作纸笺飞入书卷，收工即是掩灯，灯油就是电量。",
+    "en": "Misty ink mountains and a lone boat. Loose files fly into a scroll as paper slips; winding down puts out the lamp, and the lamp oil is your battery."
+  },
+  "author": "Orbit Desktop",
+  "version": "1.0.0",
+  "language": "zh-CN",
+  "entry": "index.html",
+  "palette": {
+    "background": "#ECE5D4",
+    "ink": "#1D2024",
+    "accent": "#B23A2A",
+    "lamp": "#E2A74A",
+    "night": "#1C1E23"
+  },
+  "concept": {
+    "world": "A scholar's study at the edge of misty mountains: xuan paper, ink, a vermilion seal and an oil lamp.",
+    "mood": "Quiet and unhurried. Light ink on warm paper by day, pale ink on deep paper at night.",
+    "type": "KaiTi (楷体) set vertically, read right to left, the way the scrolls are.",
+    "motion": "Mist drifts, a boat crosses over minutes, birds pass rarely. Nothing loops faster than a breath.",
+    "metaphors": {
+      "tidy-files.run": "收卷 Roll up: each filed document flies from the desktop into the scroll as a paper slip",
+      "tidy-files.undo": "展卷 Unroll: the slips fly back out",
+      "tidy-files.open": "书阁 The library where the scrolls are kept",
+      "tidy-files.pending": "散页 Loose pages, counted in Chinese numerals",
+      "quit-apps.run": "掩灯 Put out the lamp: the day's books close and the scene sinks into deeper ink",
+      "quit-apps.reopen": "复明 Relight the lamp",
+      "system.battery": "灯油 Lamp oil, in tenths (八成)",
+      "weather": "A vertical inscription; rain falls as fine ink strokes, snow as paper flecks",
+      "clock": "The double-hour (时辰) and the date written in Chinese numerals"
+    }
+  },
+  "uses": {
+    "actions": ["tidy-files", "quit-apps"],
+    "data": ["clock", "weather", "system"]
+  },
+  "performance": { "fps": 24 }
+}
