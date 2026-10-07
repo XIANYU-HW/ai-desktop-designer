@@ -29,6 +29,18 @@ class RegistryTest(unittest.TestCase):
             report = registry.validate_theme(target, registry.load_actions(h.workspace.root))
             self.assertEqual([m for level, m in report if level == "error"], [])
 
+    def test_static_theme_needs_no_animation_loop(self):
+        with TempHome() as h:
+            target = h.base / "my-theme"
+            shutil.copytree(ROOT / "templates" / "theme", target)
+            (target / "style.css").write_text("body { color: black; background: white; }", encoding="utf-8")
+            (target / "scene.js").write_text("", encoding="utf-8")
+            report = registry.validate_theme(target)
+            self.assertFalse(any("animations should pause" in message for _, message in report))
+            (target / "style.css").write_text("@keyframes drift { to { transform: translateX(3px); } }", encoding="utf-8")
+            report = registry.validate_theme(target)
+            self.assertTrue(any("animations should pause" in message for _, message in report))
+
     def test_bundled_and_template_actions_are_valid(self):
         for folder in list((ROOT / "actions").iterdir()) + [ROOT / "templates" / "action"]:
             if (folder / "action.json").exists():

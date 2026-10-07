@@ -40,6 +40,26 @@ their arrangement is not guaranteed by the OS name. Establish hierarchy and read
 viewing distance. Controls may be clustered, split into purposeful zones or integrated with the artwork.
 Test the smallest and widest target sizes, long labels, populated lists and unavailable data.
 
+### Narrative themes: connect meaning to behavior
+
+When the user asks for a theme with a deeper connection, identify its central tension, rules and
+recognizable situations from the supplied material or verified references. Map those to composition,
+interaction and state changes, then to color and decoration. Explain a few specific connections in
+the brief. A title, logo and palette alone do not establish that connection. A practical non-narrative
+desktop needs no invented mythology.
+
+For rich interactive scenes, define what each event affects: nearby materials, lighting, environment,
+characters and controls. Effects should have a clear origin, build-up, consequence and recovery.
+An attraction effect can pull nearby objects; a flowing river needs directional surface movement;
+opposing forces can alter the shared scene. Generic floating dots cannot substitute for those effects.
+Select the smallest simulation or layered animation that makes the intended consequence visible.
+
+For living figures, protect anatomy and silhouette: anchor feet and joints, separate cloth/hair from
+body motion when assets permit, and inspect several points in the cycle. Whole-image warping often
+bends faces and rigid objects. If the source cannot support convincing motion, change the asset or
+animation method instead of increasing distortion. Keep functional controls legible and reachable
+through the dramatic states, and provide a bounded return to the resting scene.
+
 ## Typography and material
 
 - Choose a deliberate type system and consistent scale. System fonts can be correct; unintended

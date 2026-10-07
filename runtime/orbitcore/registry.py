@@ -143,7 +143,9 @@ def validate_theme(folder: Path, actions: Optional[Dict[str, Dict[str, Any]]] = 
                                   "system fonts and looks cheap. Bundle them: orbit.py fonts <id> --family \"…\""))
 
     joined = "\n".join(texts.values())
-    if "Orbit.loop" not in joined and "prefers-reduced-motion" not in joined:
+    has_motion = ("requestAnimationFrame" in joined or "@keyframes" in joined
+                  or bool(re.search(r"<video\b[^>]*\bautoplay\b", joined, re.I)))
+    if has_motion and "Orbit.loop" not in joined and "prefers-reduced-motion" not in joined:
         report.append(("warning", "no Orbit.loop() or prefers-reduced-motion handling found; animations should pause and respect reduced motion"))
     if "requestAnimationFrame" in joined and "Orbit.loop" not in joined:
         report.append(("warning", "uses requestAnimationFrame directly; prefer Orbit.loop() so the scene pauses with the wallpaper host"))
