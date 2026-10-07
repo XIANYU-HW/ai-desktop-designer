@@ -1,12 +1,4 @@
-"""orbit.py review: look at a theme the way an art director would, before the user sees it.
-
-It renders the theme in the screen sizes people really have and in its other states (day, night and
-rain, English, any states the theme lists in theme.json under "review"), asks the page to measure
-itself (sdk/orbit.js ?review: fonts, fallbacks, overlaps, tiny text, icon and taskbar zones, script
-errors, network requests), and writes a folder with every picture plus report.md: the automatic
-findings followed by the checklist from references/quality-review.md. The agent then opens every
-picture and answers the checklist item by item; anything not at the bar gets fixed and reviewed again.
-"""
+"""Collect reproducible render evidence; visual quality and real-host behavior need separate review."""
 from __future__ import annotations
 
 import html
@@ -15,6 +7,7 @@ import re
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
+from urllib.parse import parse_qs
 
 from . import env, hosts
 
@@ -44,7 +37,8 @@ def parse_report(dom: str) -> Optional[Dict[str, Any]]:
     if not match:
         return None
     try:
-        return json.loads(html.unescape(match.group(1)))
+        value = json.loads(html.unescape(match.group(1)))
+        return value if isinstance(value, dict) else None
     except ValueError:
         return None
 
@@ -68,6 +62,9 @@ def assess(report: Optional[Dict[str, Any]], theme_dir: Path) -> List[Finding]:
     findings: List[Finding] = []
     if report is None:
         return [("error", "The page did not write its self-measurement: it may have crashed before the SDK ran, or the SDK is out of date.")]
+    viewport = report.get("viewport")
+    if not isinstance(viewport, list) or len(viewport) != 2 or not all(isinstance(n, (int, float)) and n > 0 for n in viewport):
+        return [("error", "The page wrote an invalid measurement (missing or invalid viewport).")]
     for message in report.get("errors") or []:
         findings.append(("error", f"Script error: {message}"))
     failed_fonts = sorted({f"{f['family']} {f.get('weight', '')}".strip() for f in report.get("fonts") or [] if f.get("status") == "error"})
@@ -75,11 +72,11 @@ def assess(report: Optional[Dict[str, Any]], theme_dir: Path) -> List[Finding]:
         findings.append(("error", f"Font file failed to load: {font}"))
     missing = sorted(family for family, ok in (report.get("families") or {}).items() if not ok and family not in ("serif", "sans-serif", "monospace", "system-ui", "cursive", "fantasy"))
     for family in missing:
-        findings.append(("error", f"Text is shown in a fallback font: '{family}' is not available. Bundle it (orbit.py fonts) or use a font every system has."))
+        findings.append(("error", f"Font availability probe could not find '{family}'. Check the rendered glyphs and intended fallback; bundle required fonts if licensed. This probe cannot identify every glyph's actual font."))
     remote = sorted(set((report.get("network") or []) + network_sources(theme_dir)))
     if remote:
-        findings.append(("warning", "Loads from the network at run time (breaks offline and where the host is blocked, e.g. Google Fonts in mainland China): "
-                         + ", ".join(remote[:6]) + (" …" if len(remote) > 6 else "") + ". Bundle fonts with orbit.py fonts; ship other files in assets/."))
+        findings.append(("warning", "Remote URLs observed or referenced in source (source references may be links or comments, not loads): "
+                         + ", ".join(remote[:6]) + (" …" if len(remote) > 6 else "") + ". Inspect essential dependencies and test the offline state."))
     for a, b in report.get("overlaps") or []:
         findings.append(("error", f"Overlap: {a} and {b}"))
     zones: Dict[str, List[str]] = {}
@@ -95,14 +92,14 @@ def assess(report: Optional[Dict[str, Any]], theme_dir: Path) -> List[Finding]:
         findings.append(("warning", f"Text smaller than {MIN_TEXT_PX}px at {report['viewport'][0]}×{report['viewport'][1]}: " + "; ".join(tiny[:5])))
     sizes = sorted({round(t["size"]) for t in texts})
     if len(sizes) > MAX_TEXT_SIZES:
-        findings.append(("warning", f"{len(sizes)} different text sizes ({', '.join(str(s) for s in sizes)}px): a premium page uses a short scale (display, title, text, caption)."))
+        findings.append(("warning", f"{len(sizes)} different text sizes ({', '.join(str(s) for s in sizes)}px): inspect hierarchy against the chosen visual direction."))
     families = sorted({t["family"] for t in texts})
     if len(families) > MAX_FAMILIES:
-        findings.append(("warning", f"{len(families)} font families ({', '.join(families)}): keep to one display voice and one text face."))
+        findings.append(("warning", f"{len(families)} font families ({', '.join(families)}): inspect whether each has an intentional role."))
     if not report.get("translate"):
-        findings.append(("warning", "The page can be offered for translation: add translate=\"no\" to <html> (current SDKs do this)."))
+        findings.append(("warning", "The page lacks translate=\"no\". This hint can reduce prompts, but only real browser/host input testing can verify translation behavior."))
     if not findings:
-        findings.append(("ok", "No automatic problems found."))
+        findings.append(("ok", "No problems detected by these automatic probes; visual and host review remain pending."))
     return findings
 
 
@@ -126,51 +123,89 @@ def run(
     wait_ms: int = 4500,
     log: Callable[[str], None] = print,
 ) -> Tuple[int, Path]:
-    """Render, measure and write the report. Returns (worst level: 0 ok, 1 warnings, 2 errors, report path)."""
+    """Render and measure every planned case. 0/1/2 means automatic ok/warning/error only."""
     out_dir.mkdir(parents=True, exist_ok=True)
     theme_id = theme.get("id") or theme_dir.name
     base = f"{hosts.base_url(port)}/themes/{theme_id}/?snapshot=1&demo=1"
     sizes = SIZES[:2] if quick else SIZES
-    plan: List[Tuple[str, str, int, int]] = [("default", "", w, h) for w, h in sizes]
-    for name, query in STATES + theme_states(theme):
-        plan.append((name, query, 1920, 1080))
+    states = [("default", "")] + STATES + theme_states(theme)
+    plan = [(name, query, w, h) for name, query in states for w, h in sizes]
     pictures: List[Tuple[str, Path]] = []
-    for name, query, width, height in plan:
-        target = out_dir / f"{name}-{width}x{height}.png"
-        ok, detail = hosts.snapshot(base + ("&" + query if query else ""), target, width, height, wait_ms)
+    measured: Dict[str, Optional[Dict[str, Any]]] = {}
+    cases: List[Dict[str, Any]] = []
+    findings: List[Finding] = []
+    for number, (name, query, width, height) in enumerate(plan, 1):
+        # Prefixes keep duplicate/sanitized state names from overwriting earlier evidence.
+        case_id = f"{number:02d}-{name}-{width}x{height}"
+        target = out_dir / f"{case_id}.png"
+        url = base + ("&" + query if query else "")
+        try:
+            ok, detail = hosts.snapshot(url, target, width, height, wait_ms)
+        except (OSError, RuntimeError) as exc:
+            ok, detail = False, str(exc)
+        if ok and (not target.is_file() or target.stat().st_size == 0):
+            ok, detail = False, "the renderer reported success without a nonempty image"
         log(("  ✓ " if ok else "  ✗ ") + (target.name if ok else f"{target.name}: {detail}"))
         if ok:
             pictures.append((f"{name} · {width}×{height}" + (f" · ?{query}" if query else ""), target))
-    measured: Dict[str, Optional[Dict[str, Any]]] = {}
-    for width, height in sizes[:2]:
-        ok, dom = hosts.dump_dom(base + "&review=3500", width, height, wait_ms + 2500)
-        measured[f"{width}x{height}"] = parse_report(dom) if ok else None
-    findings: List[Finding] = []
-    for size, report in measured.items():
-        for level, message in assess(report, theme_dir):
-            entry = (level, f"[{size}] {message}" if level != "ok" else message)
+        else:
+            findings.append(("error", f"[{case_id}] Snapshot failed: {detail}"))
+        try:
+            dom_ok, dom = hosts.dump_dom(url + "&review=3500", width, height, wait_ms + 2500)
+        except (OSError, RuntimeError) as exc:
+            dom_ok, dom = False, str(exc)
+        report = parse_report(dom) if dom_ok else None
+        measured[case_id] = report
+        try:
+            case_findings = assess(report, theme_dir)
+        except (TypeError, ValueError, KeyError, AttributeError) as exc:
+            case_findings = [("error", f"The page wrote malformed measurement fields: {exc}")]
+        if report:
+            expected_state = parse_qs(query).get("review-state", [None])[0]
+            if expected_state and report.get("state") != expected_state:
+                case_findings.append(("error", f"Fixture '{expected_state}' was requested but the page did not confirm data-review-state. Implement the state before claiming coverage."))
+            # Some headless engines subtract window chrome from the requested size.
+            if report.get("viewport") != [width, height]:
+                case_findings.append(("warning", f"Requested {width}×{height}; browser measured {report.get('viewport')}. Use the measured viewport when recording coverage."))
+        for level, message in case_findings:
+            entry = (level, f"[{case_id}] {message}" if level != "ok" else message)
             if entry not in findings:
                 findings.append(entry)
+        cases.append({"id": case_id, "state": name, "query": query,
+                      "requested_viewport": [width, height], "measured_viewport": report.get("viewport") if report else None,
+                      "snapshot": "captured" if ok else "failed", "snapshot_error": None if ok else detail,
+                      "measurement": "collected" if report is not None else "failed",
+                      "measurement_error": None if dom_ok else dom,
+                      "picture": str(target) if ok else None})
     if any(level != "ok" for level, _ in findings):
         findings = [f for f in findings if f[0] != "ok"]
     worst = 2 if any(level == "error" for level, _ in findings) else 1 if any(level == "warning" for level, _ in findings) else 0
+    coverage = {"planned": len(plan), "captured": len(pictures),
+                "measured": sum(r is not None for r in measured.values()), "mode": "quick" if quick else "full"}
+    evidence = {"automatic": "failed" if worst == 2 else "warnings" if worst == 1 else "passed",
+                "visual": "pending", "interaction": "pending", "real_host": "pending"}
     marks = {"ok": "✓", "warning": "!", "error": "✗"}
     lines = [
-        f"# Review of {theme_id} — {time.strftime('%Y-%m-%d %H:%M')}",
-        "",
-        "Open every picture below and answer the checklist with what you actually see. Fix what is not at",
-        "the bar, run `orbit.py review` again, and only then show the user. After installing, check the real",
-        "desktop too: `orbit.py capture` (with the user's OK) and look at the picture.",
-        "",
-        "## Automatic findings",
-        "",
+        f"# Review of {theme_id} — {time.strftime('%Y-%m-%d %H:%M')}", "",
+        f"Automatic checks: **{evidence['automatic']}**. Visual, interaction and real-host review: **pending**.",
+        f"Coverage ({coverage['mode']}): {len(plan)} planned cases; {len(pictures)} images; {coverage['measured']} page measurements.", "",
+        "Screenshots and DOM probes do not certify aesthetics, frame pacing, input behavior or host installation.",
+        "Inspect each image against the brief. Record observations and evidence for pass, fail, not applicable or unverified.",
+        "Use temporary fixtures for action tests. After an authorized installation, verify the actual host separately.", "",
+        "## Automatic findings", "",
     ]
     lines += [f"- {marks[level]} {message}" for level, message in findings]
     lines += ["", "## Pictures", ""]
     lines += [f"- {label}: `{path.name}`" for label, path in pictures]
-    lines += ["", "## Checklist (answer every item)", "", checklist(env.SKILL_ROOT) or "See references/quality-review.md."]
+    lines += ["", "## Review record (complete after observation)", "",
+              "| Check | Outcome | Evidence / limitation |", "|---|---|---|",
+              "| Visual match to brief | unverified | Open the collected images |",
+              "| Interaction and failure recovery | unverified | Exercise safe fixtures |",
+              "| Motion and resource use | unverified | Observe playback and measure on target device |",
+              "| Real host / input / translation | unverified | Requires the actual target host |",
+              "", "## Checklist", "", checklist(env.SKILL_ROOT) or "See references/quality-review.md."]
     report_path = out_dir / "report.md"
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    (out_dir / "report.json").write_text(json.dumps({"theme": theme_id, "findings": findings, "measured": measured,
-                                                      "pictures": [str(p) for _, p in pictures]}, ensure_ascii=False, indent=1), encoding="utf-8")
+    (out_dir / "report.json").write_text(json.dumps({"theme": theme_id, "coverage": coverage, "evidence": evidence,
+        "findings": findings, "cases": cases, "measured": measured, "pictures": [str(p) for _, p in pictures]}, ensure_ascii=False, indent=2), encoding="utf-8")
     return worst, report_path

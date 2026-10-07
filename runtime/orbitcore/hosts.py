@@ -39,10 +39,10 @@ def base_url(port: int) -> str:
 def helper_command(workspace: Workspace, windowless: bool = True) -> List[str]:
     console, quiet = env.python_executables()
     exe = quiet if windowless else console
-    command = [str(exe), str(env.ORBIT_SCRIPT)]
-    if os.environ.get("ORBIT_WORKSPACE"):
-        command += ["--workspace", str(workspace.root)]
-    return command + ["serve", "--quiet"]
+    # The child may run at sign-in with a different environment and working directory.
+    # Always keep the selected workspace, including an explicit CLI --workspace.
+    return [str(exe), str(env.ORBIT_SCRIPT), "--workspace",
+            str(workspace.root.expanduser().resolve()), "serve", "--quiet"]
 
 
 def start_background(workspace: Workspace, wait: float = 10.0) -> Tuple[bool, str]:
@@ -51,14 +51,17 @@ def start_background(workspace: Workspace, wait: float = 10.0) -> Tuple[bool, st
     if ping(port):
         return True, "already running"
     workspace.logs_dir.mkdir(parents=True, exist_ok=True)
-    log_file = open(workspace.logs_dir / "console.log", "a", encoding="utf-8")
-    kwargs: Dict[str, Any] = {"stdin": subprocess.DEVNULL, "stdout": log_file, "stderr": log_file, "close_fds": True, "cwd": str(workspace.root)}
+    kwargs: Dict[str, Any] = {"stdin": subprocess.DEVNULL, "close_fds": True, "cwd": str(workspace.root)}
     if env.IS_WINDOWS:
         kwargs["creationflags"] = env.DETACHED_PROCESS | env.CREATE_NEW_PROCESS_GROUP | env.CREATE_NO_WINDOW
     else:
         kwargs["start_new_session"] = True
-    proc = subprocess.Popen(helper_command(workspace, windowless=True), **kwargs)
-    log_file.close()
+    try:
+        with open(workspace.logs_dir / "console.log", "a", encoding="utf-8") as log_file:
+            proc = subprocess.Popen(helper_command(workspace, windowless=True),
+                                    stdout=log_file, stderr=log_file, **kwargs)
+    except OSError as exc:
+        return False, f"could not launch the helper: {exc}"
     deadline = time.time() + wait
     while time.time() < deadline:
         if ping(port):
@@ -201,6 +204,92 @@ def open_preview(workspace: Workspace, url: str, fullscreen: bool = True) -> str
     return Path(browser).name
 
 
+_BROWSER_CLEANUP_SECONDS = 5.0
+_BROWSER_STDOUT_LIMIT = 16 * 1024 * 1024
+_BROWSER_STDERR_LIMIT = 64 * 1024
+
+
+def _stop_headless(proc: subprocess.Popen) -> str:
+    """Stop only this render's isolated group/tree, then reap with a deadline.
+
+    Never match browser names: the user's normal browser is a separate process.
+    A process group is created at launch on POSIX; Windows taskkill targets only
+    the new browser PID and its descendants.
+    """
+    cleanup_error = ""
+    if env.IS_WINDOWS:
+        try:
+            result = subprocess.run(
+                ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=_BROWSER_CLEANUP_SECONDS, creationflags=env.CREATE_NO_WINDOW,
+            )
+            if result.returncode:
+                cleanup_error = "the render process tree cleanup failed"
+                proc.kill()
+        except (OSError, subprocess.SubprocessError):
+            cleanup_error = "the render process tree cleanup failed"
+            try:
+                proc.kill()
+            except OSError:
+                pass
+    else:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        except OSError:
+            cleanup_error = "the isolated render process group cleanup failed"
+            try:
+                proc.kill()
+            except OSError:
+                pass
+    try:
+        proc.wait(timeout=_BROWSER_CLEANUP_SECONDS)
+    except subprocess.TimeoutExpired:
+        return "the render process did not exit within the cleanup deadline"
+    return cleanup_error
+
+
+def _run_headless(args: List[str], timeout: float) -> Tuple[bytes, bytes, bool, str]:
+    """Capture output without pipes that surviving browser children can hold open."""
+    with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
+        kwargs: Dict[str, Any] = {"stdin": subprocess.DEVNULL, "stdout": stdout, "stderr": stderr}
+        if env.IS_WINDOWS:
+            kwargs["creationflags"] = env.CREATE_NO_WINDOW | env.CREATE_NEW_PROCESS_GROUP
+        else:
+            kwargs["start_new_session"] = True
+        try:
+            proc = subprocess.Popen(args, **kwargs)
+        except OSError as exc:
+            return b"", str(exc).encode("utf-8", errors="replace"), False, "could not start the browser"
+        timed_out, cleanup_error = False, ""
+        try:
+            proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            cleanup_error = _stop_headless(proc)
+        except BaseException:
+            # A new POSIX session does not receive the terminal's Ctrl+C. Reap
+            # our render before propagating cancellation to the caller.
+            _stop_headless(proc)
+            raise
+        stdout.seek(0)
+        output = stdout.read(_BROWSER_STDOUT_LIMIT + 1)
+        if len(output) > _BROWSER_STDOUT_LIMIT:
+            output = b""
+            cleanup_error = cleanup_error or "browser DOM output exceeded the size limit"
+        stderr.seek(0, os.SEEK_END)
+        stderr.seek(max(0, stderr.tell() - _BROWSER_STDERR_LIMIT))
+        errors = stderr.read(_BROWSER_STDERR_LIMIT)
+        return output, errors, timed_out, cleanup_error
+
+
+def _browser_error(message: str, stderr: bytes) -> str:
+    detail = stderr.decode("utf-8", errors="replace").strip()[-400:]
+    return message + (": " + detail if detail else "")
+
+
 def snapshot(url: str, out: Path, width: int = 1920, height: int = 1080, wait_ms: int = 4000) -> Tuple[bool, str]:
     """Render a page with a headless browser into a PNG file."""
     browser = find_browser()
@@ -220,22 +309,16 @@ def snapshot(url: str, out: Path, width: int = 1920, height: int = 1080, wait_ms
             f"--user-data-dir={profile}", f"--window-size={width},{height}",
             f"--virtual-time-budget={wait_ms}", f"--screenshot={out}", url,
         ]
-        kwargs: Dict[str, Any] = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE}
-        if env.IS_WINDOWS:
-            kwargs["creationflags"] = env.CREATE_NO_WINDOW
-        proc = subprocess.Popen(args, **kwargs)
-        try:
-            _, err = proc.communicate(timeout=max(60, wait_ms / 1000 * 4))
-        except subprocess.TimeoutExpired:
-            # Some browsers write the picture and then fail to exit; keep the picture if it is there.
-            proc.kill()
-            _, err = proc.communicate()
-            if out.exists() and out.stat().st_size > 0:
-                return True, str(out)
-            return False, "the browser took too long"
+        _, err, timed_out, cleanup_error = _run_headless(args, timeout=max(60, wait_ms / 1000 * 4))
+        if cleanup_error:
+            return False, _browser_error(cleanup_error, err)
+        # Some browsers write the picture and then fail to exit; keep the image
+        # only after bounded cleanup has reaped the process we started.
+        if timed_out and not (out.exists() and out.stat().st_size > 0):
+            return False, _browser_error("the browser took too long", err)
     if out.exists() and out.stat().st_size > 0:
         return True, str(out)
-    return False, (err.decode("utf-8", errors="replace") if err else "no image produced")[-400:]
+    return False, _browser_error("no image produced", err)
 
 
 def dump_dom(url: str, width: int = 1920, height: int = 1080, wait_ms: int = 5000) -> Tuple[bool, str]:
@@ -252,19 +335,13 @@ def dump_dom(url: str, width: int = 1920, height: int = 1080, wait_ms: int = 500
             f"--user-data-dir={profile}", f"--window-size={width},{height}",
             f"--virtual-time-budget={wait_ms}", "--dump-dom", url,
         ]
-        kwargs: Dict[str, Any] = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE}
-        if env.IS_WINDOWS:
-            kwargs["creationflags"] = env.CREATE_NO_WINDOW
-        proc = subprocess.Popen(args, **kwargs)
-        try:
-            out, err = proc.communicate(timeout=max(60, wait_ms / 1000 * 4))
-        except subprocess.TimeoutExpired:
-            proc.kill()
-            out, err = proc.communicate()
+        out, err, timed_out, cleanup_error = _run_headless(args, timeout=max(60, wait_ms / 1000 * 4))
+        if cleanup_error or timed_out:
+            return False, _browser_error(cleanup_error or "the browser took too long", err)
     text = out.decode("utf-8", errors="replace") if out else ""
     if text.strip():
         return True, text
-    return False, (err.decode("utf-8", errors="replace") if err else "no DOM produced")[-400:]
+    return False, _browser_error("no DOM produced", err)
 
 
 def capture_screen(out: Path) -> Tuple[bool, str]:
@@ -366,6 +443,7 @@ def lively_library(info: Dict[str, Any]) -> Path:
 
 
 def install_lively(workspace: Workspace, url: str, theme_dir: Optional[Path] = None) -> Tuple[bool, str]:
+    """Create the library entry and report whether Lively accepted the request, not display verification."""
     info = find_lively()
     if not info["installed"]:
         return False, "lively-missing"
@@ -392,10 +470,15 @@ def install_lively(workspace: Workspace, url: str, theme_dir: Optional[Path] = N
     if not info.get("exe"):
         return False, "lively-store"
     try:
-        subprocess.run([info["exe"], "setwp", "--file", str(package)], timeout=30, creationflags=env.CREATE_NO_WINDOW)
+        result = subprocess.run([info["exe"], "setwp", "--file", str(package)], timeout=30,
+                                capture_output=True, text=True, creationflags=env.CREATE_NO_WINDOW)
     except (OSError, subprocess.SubprocessError) as exc:
         return False, f"lively-command-failed: {exc}"
-    return True, str(package)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()[-400:]
+        return False, f"lively-command-failed: exit {result.returncode}" + (f": {detail}" if detail else "")
+    # A zero exit status acknowledges the command; it does not verify the desktop.
+    return True, f"lively-request-accepted: {package}"
 
 
 def reload_lively() -> None:
@@ -411,15 +494,10 @@ def uninstall_lively() -> Tuple[bool, str]:
     info = find_lively()
     if not info["installed"]:
         return True, "lively-missing"
-    if info.get("exe"):
-        try:
-            subprocess.run([info["exe"], "closewp", "--monitor", "-1"], timeout=20, creationflags=env.CREATE_NO_WINDOW)
-        except (OSError, subprocess.SubprocessError):
-            pass
-    package = lively_library(info) / "wallpapers" / LIVELY_PACKAGE
-    if package.is_dir() and (package / "LivelyInfo.json").exists():
-        shutil.rmtree(package, ignore_errors=True)  # the folder Orbit created, nothing else
-    return True, str(package)
+    # closewp selects monitors, not a particular Orbit instance. Without a verified
+    # mapping it could close another wallpaper, so leave host removal to the user.
+    # Keep the library files too: they may still belong to an active wallpaper.
+    return False, "lively-manual-removal"
 
 
 def copy_to_clipboard(text: str) -> bool:
@@ -447,11 +525,19 @@ def find_plash() -> Optional[str]:
 
 
 def install_plash(url: str) -> Tuple[bool, str]:
+    """Submit a Plash URL request; success only means the OS accepted that request."""
     if not find_plash():
         return False, "plash-missing"
     query = urllib.parse.urlencode({"url": url, "title": "Orbit Desktop"}, quote_via=urllib.parse.quote)
-    subprocess.run(["open", f"plash:add?{query}"], timeout=15)
-    return True, "plash"
+    try:
+        result = subprocess.run(["open", f"plash:add?{query}"], timeout=15,
+                                capture_output=True, text=True)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return False, f"plash-command-failed: {exc}"
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()[-400:]
+        return False, f"plash-command-failed: exit {result.returncode}" + (f": {detail}" if detail else "")
+    return True, "plash-request-accepted"
 
 
 # --------------------------------------------------------------------------- start at sign-in
@@ -493,7 +579,7 @@ def set_autostart(workspace: Workspace, enabled: bool) -> None:
         try:
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, run_key, 0, winreg.KEY_SET_VALUE) as key:
                 winreg.DeleteValue(key, AUTOSTART_NAME)
-        except OSError:
+        except FileNotFoundError:
             pass  # nothing to remove
         return
     if env.IS_MAC:

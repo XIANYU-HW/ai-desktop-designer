@@ -1,187 +1,206 @@
 # Building a theme
 
-A theme is a folder with a web page. The helper serves it at `http://127.0.0.1:<port>/themes/<id>/`
-and the wallpaper host shows `http://127.0.0.1:<port>/`, which redirects to the active theme.
+A theme is a folder with a web page, served at `http://127.0.0.1:<port>/themes/<id>/`. The wallpaper host
+normally opens `/`, which redirects to the active theme. This web runtime is separate from an existing
+native Mac ORBIT app; its source, themes and permissions do not transfer automatically.
 
-```
+```text
 ~/OrbitDesktop/themes/<id>/
-  theme.json      manifest: id, name, description, concept, palette, uses
-  index.html      the page (must load ../../sdk/orbit.js)
-  style.css       layout and tokens
-  scene.js        canvas or DOM animation, and the glue between events and the scene
-  preview.png     made by `orbit.py snapshot <id>`
-  assets/         optional images, fonts, sounds
+  theme.json       manifest, concept and review plan
+  index.html       entry page; loads ../../sdk/orbit.js
+  style.css        layout, tokens and state styles
+  scene.js         optional scene behavior and demo fixtures
+  preview.png      generated preview
+  assets/          optional art, fonts, video, sounds
 ```
 
-Start from `orbit.py new-theme <id> --from template` (a commented skeleton) or copy an example with
-`--from ink-study|deep-orbit|defrag-95`. Everything in the folder can change; the helper reloads open
-pages a moment after you save a file.
+Use `new-theme <id> --from template` or `--from <existing-theme-id>` (see `themes`). Preserve an existing
+version before editing. The template is a static skeleton with clock/weather, no preselected actions,
+and working empty/offline fixtures. Replace its composition, data and visual language as needed. A
+saved change can reload open live pages, so preserve unsent input before enabling that behavior in a
+companion window.
 
-## theme.json
+## Manifest and authoring notes
 
 ```json
 {
   "schema": 1,
-  "id": "rainy-library",
-  "name": { "zh-CN": "雨夜书库", "en": "Rainy Library" },
-  "description": { "zh-CN": "…", "en": "…" },
-  "author": "…",
-  "version": "1.0.0",
+  "id": "quiet-workspace",
+  "name": { "zh-CN": "静谧工作台", "en": "Quiet Workspace" },
+  "description": "A restrained workspace with the user's chosen tools.",
+  "version": "0.1.0",
   "language": "zh-CN",
   "entry": "index.html",
-  "palette": { "background": "#…", "accent": "#…" },
+  "palette": { "background": "#f2f1ed", "text": "#272a29", "accent": "#355f54" },
   "concept": {
-    "world": "…", "mood": "…", "type": "…", "motion": "…",
-    "metaphors": { "tidy-files.run": "…", "quit-apps.run": "…", "system.battery": "…" }
+    "world": "A quiet work surface; no fictional setting required.",
+    "mood": "Calm and legible.",
+    "type": "Deliberate system typography with stable numerals.",
+    "motion": "Static ambient scene; brief event feedback only.",
+    "metaphors": {}
   },
-  "uses": { "actions": ["tidy-files", "quit-apps"], "data": ["clock", "weather", "system"] },
-  "performance": { "fps": 60 },
-  "review": { "states": { "armed": "confirm=quit-apps", "typing": "pray=hello" } }
+  "requirements": [
+    { "id": "R1", "request": "Open the project folder", "implementation": "project control / open-path", "verification": "preview parameters and authorized open result" }
+  ],
+  "uses": { "actions": ["open-path"], "data": ["clock"] },
+  "performance": { "mode": "static", "fps": 0 },
+  "review": { "states": { "empty": "review-state=empty", "offline": "review-state=offline" } }
 }
 ```
 
-`id` uses a-z, 0-9 and `-`, and matches the folder name. `name` and `description` may be plain strings or
-`{ "zh-CN": …, "en": … }`. `uses.actions` must list every action the page uses (validate checks this).
-`review.states` (optional) names extra states `orbit.py review` should render: each value is a query
-string that your scene.js turns into that state in demo mode (show a confirm list, a half-written input…).
+IDs use 2–48 lowercase letters, digits and hyphens and should match their folder. Localized `name` and
+`description` accept strings or language maps. List used actions in `uses.actions`; validate checks
+statically detectable references. `concept`, `requirements` and `performance` document design choices;
+they do not enforce behavior or automatically configure CSS/frame rates. Keep them consistent with code.
+`review.states` declares query fixtures which the theme must implement; it is not an action trigger.
 
-## Fonts
+## Fonts and assets
 
-Bundle the fonts the theme uses, so it looks the same offline, at sign-in before the network is up, and
-where Google is blocked (mainland China):
+Use assets suited to the art direction. Bundle licensed fonts when repeatable rendering requires them;
+intentional system fonts are also valid, with platform inspection. To download Google Fonts subsets:
 
-```
-orbit.py fonts <id> --family "Noto Serif SC" --weights 400 --name "My Serif" --chars common-zh   # every common Chinese character
-orbit.py fonts <id> --family "Noto Serif SC" --weights 600 --name "My Serif" --script cjk          # only the theme's own words
-orbit.py fonts <id> --family "Cormorant Garamond" --weights 300,500 --name "My Garamond" --script latin
-```
-
-Each call downloads subsets that contain only the needed characters (the theme's own text, plus
-`common-zh` for anything the user may type), saves them in `assets/fonts/` and updates
-`assets/fonts/fonts.css`. Link it before style.css and use the `--name` as the font-family:
-
-```html
-<link rel="stylesheet" href="assets/fonts/fonts.css">
+```text
+orbit.py fonts <id> --family "Noto Serif SC" --weights 400 --name "Reading Serif" --chars common-zh
+orbit.py fonts <id> --family "Cormorant Garamond" --weights 400,500 --name "Display Serif" --script latin
 ```
 
-Run the command again after adding new words to the theme. The whole common Chinese set at one weight is
-about 800 KB.
+Link `assets/fonts/fonts.css` before the theme stylesheet and use the selected family name. Regenerate
+subsets after text changes. `common-zh` adds GB2312 level-one characters and punctuation; it is not all
+Chinese or every character a user may enter. Dynamic names, rare characters and other languages need
+appropriate coverage and intentional fallbacks. Inspect actual glyphs; a loaded font file alone does
+not prove coverage. Record asset provenance and usage terms when relevant, especially for sharing.
 
-## The SDK
+## SDK and modes
 
-Load it after your markup and before your own scripts:
+Load after markup and before theme scripts:
 
 ```html
 <script src="../../sdk/orbit.js"></script>
 <script src="scene.js"></script>
 ```
 
-Served by the helper the page is **live**: buttons run real actions. Opened any other way, or with
-`?demo` in the URL, it runs in **demo** mode with sample weather, readings and simulated actions, so a
-theme can always be previewed safely. `Orbit.live` / `Orbit.demo` tell you which.
+When the helper supplies a token the page is **live** and controls can run real operations. `?demo=1`
+forces SDK sample data and simulated actions. `snapshot` is a capture hint, not a replacement for demo
+mode; use both for safe review. Custom JavaScript can bypass the SDK, so imported code and fixtures
+still need review. Built-in demo responses do not validate custom action behavior.
 
-### Markup bindings (no JavaScript needed)
-
-| Attribute | Effect |
+| Binding | Effect |
 |---|---|
-| `data-orbit-action="tidy-files"` | Click runs the action. Add `data-orbit-op="undo"` for another operation (default `run`). |
-| `data-orbit-params='{"source":"downloads"}'` | Parameters for this button (only ones the action declares). |
-| `data-orbit-confirm="auto\|always\|never"` | `auto` (default) asks for a second click when the operation closes apps or changes settings, and shows the action's `preview` message meanwhile. |
-| `data-orbit-status` / `data-orbit-status="quit-apps"` | Shows the latest message (of all actions, or one). |
-| `data-orbit-value="tidy-files.pending"` | A value from an action's `status` data (`pending`, `open`, `reopenable`, …). |
-| `data-orbit-clock="{HH}:{mm}"` | Live clock. Tokens: `{YYYY} {MM} {M} {DD} {D} {HH} {H} {hh} {h} {mm} {ss} {ampm} {weekday} {wd} {month} {mon} {doy} {shichen} {cn-month} {cn-day} {cn-weekday}` |
-| `data-orbit-weather="temperature"` | `temperature`, `apparent`, `high`, `low`, `condition`, `place`, `humidity`, `wind`. |
-| `data-orbit-system="cpu"` | `cpu`, `memory`, `disk`, `battery` as percentages. |
-| `data-orbit-gallery` | Opens the theme gallery in the browser. |
+| `data-orbit-action="open-path"` | Click runs an action; `data-orbit-op` selects the operation (default `run`). |
+| `data-orbit-params='{"path":"{documents}/Projects"}'` | Declared action parameters for the control. |
+| `data-orbit-confirm="auto\|always\|never"` | SDK confirmation policy; auto arms app/system operations. Choose according to effect and authorization; do not use presentation settings as a security guarantee. |
+| `data-orbit-status` or `data-orbit-status="ACTION"` | Latest all-action or action-specific message. |
+| `data-orbit-value="ACTION.FIELD"` | A value from action status data. |
+| `data-orbit-clock="{HH}:{mm}"` | Date/time format tokens listed below. |
+| `data-orbit-weather="temperature"` | Also apparent, high, low, condition, place, humidity, wind. |
+| `data-orbit-system="cpu"` | Also memory, disk and battery percentages. |
+| `data-orbit-gallery` | Open the theme gallery. |
 
-Empty values get a `data-orbit-empty` attribute, so `[data-orbit-empty] { display: none }` hides, say,
-the battery row on a desktop PC.
+Clock tokens: `{YYYY} {MM} {M} {DD} {D} {HH} {H} {hh} {h} {mm} {ss} {ampm} {weekday} {wd} {month}
+{mon} {doy} {shichen} {cn-month} {cn-day} {cn-weekday}`. Empty bindings get `data-orbit-empty`; design
+whether to hide them or show a meaningful unavailable label.
 
-### State you can style
-
-On `<html>`:
-`data-orbit-mode` (live, demo), `data-orbit-connection` (online, offline), `data-orbit-paused`,
-`data-orbit-busy` (id of the running action), `data-daypart` (dawn, day, dusk, night),
-`data-weather` (clear, partly, cloudy, fog, drizzle, rain, snow, storm), `data-os` (windows, macos, linux),
-and CSS custom properties `--orbit-cpu`, `--orbit-memory`, `--orbit-disk`, `--orbit-battery` (0 to 1).
-Use them directly, for example `width: calc(var(--orbit-cpu, 0) * 100%)`.
-
-On action elements: `is-running`, `is-done`, `is-error` (about 2.6 s), `is-armed` (waiting for the
-confirming click), `is-unavailable` (the action's status says this operation has nothing to do).
-
-### JavaScript
+The root exposes `data-orbit-mode`, `data-orbit-connection`, `data-orbit-paused`, `data-orbit-busy`,
+`data-daypart`, `data-weather`, `data-os` and normalized `--orbit-cpu/memory/disk/battery` CSS properties.
+Action controls use `is-running`, `is-done`, `is-error`, `is-armed`, `is-unavailable`. Style applicable
+states without relying on color alone. State classes are presentation, not evidence of an OS effect.
 
 ```js
-Orbit.ready.then(() => { /* state, weather, readings and statuses are loaded */ });
-
-Orbit.on('action', (e) => {
-  // e.action, e.op, e.phase: 'start' | 'progress' | 'done' | 'error'
-  // progress events carry e.progress (0..1), e.message and action-specific fields:
-  //   tidy-files: e.item, e.category, e.status ('moved' | 'keep' | 'restored')
-  //   quit-apps:  e.app, e.status ('closed' | 'hidden' | 'waiting' | 'opened')
-  // done/error carry e.result = { ok, message, data }
+Orbit.ready.then(() => { /* initial data available */ });
+Orbit.on('action', e => {
+  // e.action, e.op, e.phase: start | progress | done | error
+  // progress: e.progress, e.message, and action-specific fields
+  // done/error: e.result = { ok, message, data }
 });
-Orbit.on('confirm', (e) => { /* e.phase 'armed' (with e.preview) or 'cancel' */ });
-Orbit.on('status', (e) => { /* e.action, e.data, e.g. e.data.pending */ });
-Orbit.on('weather', (w) => {}); Orbit.on('system', (s) => {}); Orbit.on('daypart', ({ daypart }) => {});
-Orbit.on('pause', () => {}); Orbit.on('resume', () => {}); Orbit.on('connection', ({ online }) => {});
-
-Orbit.run('tidy-files', 'run', {});            // what a button does; resolves to { ok, message, data }
-Orbit.query('quit-apps', 'preview');           // read-only data, no UI side effects
-Orbit.loop((t, dt) => draw(t, dt), { fps: 60 }); // pauses when hidden; t = seconds of visible animation
-Orbit.t('中文', 'English');                     // pick text for the user's language (Orbit.lang is 'zh' or 'en')
+Orbit.on('confirm', e => { /* e.phase: armed | cancel; e.preview when available */ });
+Orbit.on('status', e => { /* e.action, e.data */ });
+Orbit.on('weather', w => {}); Orbit.on('system', s => {});
+Orbit.on('daypart', e => {}); Orbit.on('connection', e => {});
+Orbit.on('pause', () => {}); Orbit.on('resume', () => {});
+Orbit.query('tidy-files', 'preview', {}); // read-only, no UI side effects
+Orbit.run('open-path', 'run', {path: '{documents}/Projects'}); // real effect when live
+Orbit.t('中文', 'English');
 Orbit.formatDate(new Date(), '{HH}:{mm}');
-Orbit.pointer                                   // { x, y } in 0..1 for subtle parallax
-Orbit.progressPace = 160;                       // ms between progress events (they are paced so fast runs still animate)
+// Only for a scene that needs continuous motion; choose its budget:
+const animation = Orbit.loop((t, dt) => draw(t, dt), {fps: 30});
+// animation.stop() releases this loop; Orbit.pointer exposes x/y/active.
 ```
 
-## Layout rules
+SDK action events can be paced for presentation (`Orbit.progressPace`, default 160 ms); do not confuse
+animation duration with operation duration. Bound effects and verify final results separately. For
+reduced motion, prefer an explicit still/reduced effect when simple frame throttling is unsuitable.
 
-- The page fills the screen: `html, body { height: 100%; margin: 0; overflow: hidden }`.
-- Keep the desktop-icon side calm. The examples use
-  `:root[data-os="windows"] { --safe-left: 112px } :root[data-os="macos"] { --safe-right: 118px }` and place
-  panels with `right: calc(var(--safe-right) + 4vw)`.
-- Leave the bottom ~6% for the taskbar or Dock.
-- Size with `vh`/`vw` so it scales from 1366×768 to 4K. For pixel-art worlds, draw at 1995 sizes and
-  scale the whole stage with `transform: scale(var(--z))` (see `defrag-95`).
-- A canvas scene: size it to `innerWidth × innerHeight × min(devicePixelRatio, 2)`, and fall back to
-  `screen.width/height` when the window reports 0 while the wallpaper host starts.
+## Layout and host capabilities
 
-## Patterns from the examples
+Fill the viewport and use responsive constraints suited to the composition. Example safe margins
+(`--safe-left: 112px` on Windows, `--safe-right: 118px` on macOS, bottom 6%) are starting assumptions;
+check actual icon placement, multiple monitors, scaling and Dock/taskbar position. A browser's outer
+window size can differ from its content viewport: inspect the report's measured viewport.
 
-- **Bilingual labels:** write the main language in the markup and the other in `data-en` / `data-zh`;
-  swap them in scene.js at start-up (see `ink-study` and `defrag-95`).
-- **Vertical Chinese text:** `writing-mode: vertical-rl` on inner spans (not on the button itself);
-  digits upright with `text-combine-upright: all`.
-- **Counts as objects:** listen to `status` and keep as many objects as `e.data.pending` (debris) or
-  `e.data.open` (satellites).
-- **Per-item progress:** spawn one animated object per `progress` event; finish with an effect on `done`.
-- **Confirm in the world's language:** listen to `confirm` and render `e.preview.data.apps` (Close Program list in `defrag-95`).
-- **Soft layers, crisp lines:** paint backgrounds, light shafts, haze and glows once into offscreen canvases
-  (blurred with `ctx.filter` at build time, often at half resolution) and composite them every frame; draw
-  only the crisp moving parts live. Add film grain as a CSS overlay so dark gradients never band.
-- **Text input:** a wallpaper host passes clicks to the page but never the keyboard or an input method
-  (Chinese, Japanese…). If the theme takes text (a search box, a prompt for an AI, a note), clicking the
-  field should open the same page full screen in its own browser window and take the text there: an action
-  launches it with `hosts.browser_window_args(...)` and a profile prepared with `hosts.quiet_profile(...)`
-  (no translate bubble, no first-run pages), brings it to the front, and the page closes itself with
-  `window.close()` when it loses the focus or the text has been handed on.
-- **No browser UI:** the SDK marks every page `translate="no"`; keep it that way, and never open a
-  browser window for the theme without a quiet profile.
+Cache expensive static layers; cap canvas rendering size and pixel ratio according to measured cost.
+DOM, CSS, SVG, canvas, media and shaders have different host compatibility and pause behavior. Test the
+chosen implementation; do not infer Plash behavior from Chromium or native Swift behavior from Plash.
 
-## Checking a theme
+| Surface | Input/verification implication |
+|---|---|
+| Lively on Windows | Mouse forwarding and keyboard settings depend on host configuration. Check focus, typing and IME on the actual setup before relying on them. |
+| Plash on macOS | Interactivity uses Browsing Mode; verify focus, keyboard/IME and return to desktop behavior in Plash. |
+| Browser companion window | Can provide normal text input. Test IME, focus, opening/closing and draft recovery in the chosen browser. |
+| Existing native Mac ORBIT | Separate application with its own controls/bridge. Preserve it by default; this helper does not manage or verify its behavior. |
 
+### Text input and AI integration
+
+If wallpaper input is unavailable or inconvenient, implement a companion window appropriate to the
+task; full screen is optional. `hosts.quiet_profile()` and `hosts.browser_window_args()` are available
+for a dedicated Chromium profile and app window. Do not change the user's ordinary browser profile.
+Keep `translate="no"`, the correct page language and `notranslate` metadata. These reduce prompts but
+require actual first/repeat-launch checks; flags and screenshots of headless pages do not inspect chrome.
+
+Keep text when focus moves elsewhere. Do not close on blur, clear on launch failure or discard text
+before confirmed handoff. Define draft persistence, privacy and explicit clearing; preserve input
+through theme reloads when a live page can reload. Test Chinese composition/paste, empty/long text,
+blur/return, close/reopen, repeated submit and destination failure.
+
+No AI bridge or model is built in. If requested, create an integration for the actual destination and
+its supported mechanisms. Distinguish local draft, destination opened, message sent and reply received.
+Respect authorization for sending, and verify the actual destination state. If only a draft can be
+opened, label the result accordingly and keep a recovery copy.
+
+## Review fixtures
+
+Use `review-state=<name>` for a theme-owned deterministic fixture. The template implements `empty`
+and `offline`; extend it only for actual features. Each handler must:
+
+1. Require `Orbit.demo`, run after initial data/render setup, and never call a real effect.
+2. Feed representative fixture data through the component's rendering path where practical.
+3. Set `document.documentElement.dataset.reviewState` to the applied name only after the state is set.
+4. Leave a stable meaningful capture point; label simulated behavior and report unsupported states.
+
+```js
+Orbit.ready.then(() => {
+  const state = new URLSearchParams(location.search).get('review-state');
+  if (!Orbit.demo || !state) return;
+  if (state === 'empty') {
+    renderItems([]); // theme-owned renderer, also used for actual data
+    document.documentElement.dataset.reviewState = state;
+  }
+});
 ```
-orbit.py validate <id>                       # manifest, SDK tag, actions exist, reduced motion, size
-orbit.py snapshot <id>                       # writes preview.png using demo data
-orbit.py snapshot <id> --size 1366x768 --out small.png
-orbit.py review <id>                         # every size and state + the page's own measurements + checklist
-orbit.py capture                             # after installing: a picture of the real screen (ask first)
-orbit.py open <id> --window                  # look at it live
+
+Declare only implemented cases, e.g. `"review": {"states": {"empty": "review-state=empty"}}`.
+The marker proves only that the handler declared the state; inspect the image and expected content too.
+Action themes need applicable armed, running, done, error, canceled, partial and recovery cases. Input
+themes need typing and handoff-error states. Query fixtures verify presentation; separately test real
+transitions in demo mode and action behavior on isolated data.
+
+```text
+orbit.py validate <id>
+orbit.py snapshot <id> --size 1366x768 --query review-state=empty
+orbit.py review <id>
+orbit.py open <id> --window
 ```
 
-URL switches for previews: `?demo` (sample data), `?daypart=night|dawn|dusk|day`,
-`?weather=rain|snow|fog|clear`, `?lang=en|zh`, `?snapshot` (no live connection, used by snapshots),
-`?review` (the page measures itself and writes a JSON report into the DOM; used by `orbit.py review`).
-
-Work through `references/quality-review.md` with the review's pictures before showing anything to the user.
+Built-in preview queries: `demo`, `daypart=night|dawn|dusk|day`, `weather=rain|snow|fog|clear`,
+`lang=en|zh`, `snapshot`, and `review`. The last collects page measurements. Use
+[quality-review.md](quality-review.md) for actual image inspection, motion/interaction checks and host
+evidence. A successful render is not visual approval or proof of a working integration.

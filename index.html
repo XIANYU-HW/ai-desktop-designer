@@ -2,83 +2,79 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orbit Desktop</title>
-<meta name="description" content="A desktop where wallpaper, motion, widgets and one-click functions belong to one designed world.">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Orbit Desktop：把你想象的世界，做成每天使用的桌面。探索三体文明观测站与原神须弥知识之庭，体验融合场景、动效和实用功能的 AI 桌面设计 Skill。">
+<meta property="og:title" content="Orbit Desktop · 让桌面成为一个世界">
+<meta property="og:description" content="三体的观测与秩序，须弥的知识与生长。两套可以亲手操作的桌面世界。">
+<meta property="og:image" content="https://xianyu-hw.github.io/orbit-desktop/themes/genshin-sumeru/preview.png">
+<title>Orbit Desktop · 让桌面成为一个世界</title>
 <style>
-  /* Layout: a quiet column; the three worlds carry the page. */
-  :root {
-    --bg: #0e0f12; --fg: #ecebe6; --muted: #9a978f; --line: #26282e; --accent: #d9a55b;
-    --display: "Songti SC", "STSong", "SimSun", "Noto Serif SC", Georgia, serif;
-    --body: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-    --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
-    color-scheme: dark;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); line-height: 1.7; padding-inline: 20px; padding-block: 56px 72px; }
-  main { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
-  h1 { font-family: var(--display); font-weight: 500; font-size: clamp(34px, 6vw, 60px); line-height: 1.15; margin: 0 0 14px; text-wrap: balance; }
-  .lede { color: var(--muted); max-width: 62ch; margin: 0; font-size: 17px; }
-  .lede + .lede { margin-top: 6px; font-size: 15px; }
-  .worlds { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-  .world { display: flex; flex-direction: column; gap: 10px; color: inherit; text-decoration: none; min-width: 0; }
-  .world img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--line); border-radius: 6px; display: block; transition: transform .3s ease, border-color .3s ease; }
-  .world:hover img, .world:focus-visible img { transform: translateY(-3px); border-color: var(--accent); }
-  .world:focus-visible { outline: none; }
-  .world h2 { font-family: var(--display); font-weight: 500; font-size: 21px; margin: 4px 0 0; }
-  .world p { margin: 0; color: var(--muted); font-size: 14.5px; }
-  .world .go { font-size: 13px; color: var(--accent); letter-spacing: .04em; }
-  section h3 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
-  pre { margin: 0; background: #15171b; border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
-  .actions { display: flex; flex-wrap: wrap; gap: 12px; }
-  .actions a { color: var(--bg); background: var(--fg); text-decoration: none; padding: 9px 16px; border-radius: 6px; font-size: 14px; }
-  .actions a.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
-  footer { color: var(--muted); font-size: 13px; }
+:root{color-scheme:dark;--bg:#101210;--fg:#eeeee6;--muted:#a6aba2;--line:#30382f;--gold:#cfb77a;--green:#b8d3ae;font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-synthesis:none}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--bg);color:var(--fg);line-height:1.8}a{color:inherit;text-decoration:none}button{font:inherit}a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:6px}
+.wrap{width:min(1280px,calc(100% - 96px));margin:auto}nav{height:104px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:24px}.brand{display:flex;gap:12px;align-items:center;font-weight:650;letter-spacing:.045em;font-size:19px}.brand svg{width:30px;height:30px;color:var(--gold)}.nav-links{display:flex;gap:28px;font-size:13px;color:var(--muted)}
+.hero{position:relative;padding:90px 0 64px;display:grid;grid-template-columns:1.4fr 1fr;gap:60px;align-items:end}.eyebrow{font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.19em;text-transform:uppercase;color:var(--gold)}h1{font-family:"Songti SC","Noto Serif SC",SimSun,serif;font-weight:500;font-size:clamp(38px,4.4vw,67px);line-height:1.4;letter-spacing:.035em;margin:20px 0 16px}.hero .en{color:var(--muted);font-family:Georgia,serif;font-size:17px;margin:0}.intro{font-size:15px;color:var(--muted);max-width:420px}.intro strong{color:var(--fg);font-weight:500}.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:25px}.tag{font-size:11px;letter-spacing:.035em;border:1px solid var(--line);border-radius:20px;padding:4px 12px;color:#c0c6bb}
+.chapter{padding:38px 0 72px;border-top:1px solid var(--line)}.chapter-head{display:flex;align-items:flex-end;justify-content:space-between;gap:36px;margin-bottom:28px}.chapter-num{font:12px ui-monospace,SFMono-Regular,monospace;color:var(--gold);letter-spacing:.12em}.chapter h2{font-family:"Songti SC","Noto Serif SC",SimSun,serif;font-size:clamp(27px,3vw,39px);font-weight:500;letter-spacing:.05em;margin:6px 0 0}.chapter .english{font:italic 14px Georgia,serif;color:var(--muted)}.chapter .thesis{max-width:390px;font-size:14px;color:var(--muted);margin:0 0 4px}
+.scene{position:relative;margin:0;background:#090d0c;border:1px solid #ffffff15;overflow:hidden}.scene>a{display:block}.scene img{width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;display:block}.scene .enter{position:absolute;bottom:20px;right:20px;display:flex;align-items:center;gap:18px;border:1px solid #ffffff4d;padding:10px 18px;font-size:13px;background:#0a141be8;color:#fff;transition:background .2s}.scene .enter:hover{background:#293832}.scene small{position:absolute;top:13px;left:16px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#e5e7dc;background:#0d130dcc;padding:4px 8px}
+.world-info{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:42px;padding-top:28px}.world-info h3{font-size:14px;font-weight:500;margin:0 0 8px;color:#ddd4bc}.world-info p{font-size:13px;line-height:1.9;color:var(--muted);margin:0}.mode-switch{display:flex;gap:7px;flex-wrap:wrap;margin-top:17px}.mode-switch button{background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:20px;cursor:pointer;padding:4px 13px;font-size:11px}.mode-switch button[aria-pressed=true]{color:var(--gold);border-color:#87754d;background:#ba9d5220}
+.garden .chapter-num{color:var(--green)}.garden .world-info h3{color:var(--green)}.garden .mode-switch button[aria-pressed=true]{color:var(--green);border-color:#6f976a;background:#54734526}.note{font-size:12px;color:#929c8d;padding-top:20px}
+.method{padding:50px 0 64px;border-top:1px solid var(--line);display:grid;grid-template-columns:.95fr 1.6fr;gap:85px}.method h2,.start h2{font-family:"Songti SC",SimSun,serif;font-size:32px;font-weight:500;margin:10px 0 20px}.method p{font-size:14px;color:var(--muted)}.steps{margin:0;list-style:none;padding:0;counter-reset:step}.steps li{counter-increment:step;display:grid;grid-template-columns:32px 1fr;border-bottom:1px solid var(--line);padding:18px 0}.steps li:first-child{padding-top:0}.steps li:before{content:"0" counter(step);font:12px ui-monospace,monospace;color:var(--gold);padding-top:5px}.steps h3{font-size:16px;margin:0 0 3px;font-weight:500}.steps p{font-size:13px;margin:0}.start{border-top:1px solid var(--line);padding:55px 0 65px;display:grid;grid-template-columns:1fr 1fr;gap:64px}.start p{color:var(--muted);font-size:14px}.prompt{border-left:2px solid var(--gold);padding:0 0 0 22px;font-family:"Songti SC",SimSun,serif;font-size:19px;line-height:1.9;color:#dadcd0}.links{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.button{display:inline-block;padding:10px 19px;border:1px solid var(--line);font-size:13px}.button.primary{background:#d8dfce;color:#152014;border-color:#d8dfce}.start code{font-size:11px;display:block;padding:15px;background:#191e18;overflow:auto;white-space:nowrap;border:1px solid var(--line);color:#c3cbbd}.details{border-top:1px solid var(--line);padding:24px 0}.details summary{font-size:13px;color:var(--muted);cursor:pointer}.details p{font-size:13px;color:var(--muted);max-width:1000px}.details a{color:var(--green);text-decoration:underline;text-underline-offset:4px}
+footer{display:flex;justify-content:space-between;gap:30px;padding:28px 0 44px;border-top:1px solid var(--line);font-size:11px;color:#929b8e}footer a{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:900px){.wrap{width:calc(100% - 40px)}nav{height:80px}.nav-links{gap:15px}.hero{padding:52px 0 40px;grid-template-columns:1fr;gap:15px}.intro{max-width:650px}.chapter-head{align-items:start;gap:20px}.thesis{max-width:290px!important}.world-info{gap:20px}.method,.start{gap:35px}.scene .enter{bottom:12px;right:12px;font-size:11px;padding:6px 12px}}
+@media(max-width:620px){.brand{font-size:14px;white-space:nowrap;gap:8px}.nav-links{white-space:nowrap;font-size:11px;gap:12px}.nav-links a:first-child{display:none}.hero h1{font-size:clamp(25px,6.8vw,37px)}.chapter-head,.world-info,.method,.start{display:block}.chapter .thesis{margin:15px 0 0;max-width:none!important}.world-info>div{margin-bottom:20px}.chapter{padding-bottom:36px}.method{padding:36px 0}.steps{margin-top:30px}.start{padding:36px 0}.start>div+div{margin-top:35px}.scene .enter{position:static;justify-content:center;border:0;border-top:1px solid #ffffff20;background:#182019}.scene small{font-size:8px;top:7px;left:7px}.method h2,.start h2{font-size:28px}footer{display:block}footer div+div{margin-top:12px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>Orbit Desktop</h1>
-    <p class="lede">让桌面成为一个完整的设计：壁纸、动效、小组件和一键功能属于同一个世界。散落的文件会变成太空碎片，收工会变成掩灯，整理桌面就是磁盘碎片整理。</p>
-    <p class="lede">A desktop where wallpaper, motion, widgets and one-click functions belong to one designed world. A skill for AI agents, for Windows and macOS.</p>
-  </header>
-
-  <div class="worlds">
-    <a class="world" href="themes/ink-study/?demo">
-      <img src="themes/ink-study/preview.png" alt="墨痕书房：雾中远山、竖排楷体与纸笺">
-      <h2>墨痕书房 · Ink Study</h2>
-      <p>收卷、展卷、掩灯。文件化作纸笺飞入书卷，电量是灯油。</p>
-      <span class="go">打开演示 · Open the demo →</span>
-    </a>
-    <a class="world" href="themes/deep-orbit/?demo">
-      <img src="themes/deep-orbit/preview.png" alt="深空轨道：行星、轨道与任务控制台">
-      <h2>深空轨道 · Deep Orbit</h2>
-      <p>散落文件是碎片，开着的应用是卫星，收工就是静默航行。</p>
-      <span class="go">打开演示 · Open the demo →</span>
-    </a>
-    <a class="world" href="themes/defrag-95/?demo">
-      <img src="themes/defrag-95/preview.png" alt="磁盘整理 95：Windows 95 风格的碎片整理窗口">
-      <h2>磁盘整理 95 · Defrag 95</h2>
-      <p>整理桌面就是碎片整理，收工是“关闭程序”对话框。</p>
-      <span class="go">打开演示 · Open the demo →</span>
-    </a>
-  </div>
-
-  <section>
-    <h3>作为 Skill 使用 · Use it as a skill</h3>
-    <pre>git clone https://github.com/XIANYU-HW/orbit-desktop ~/.claude/skills/orbit-desktop     # Claude Code
-git clone https://github.com/XIANYU-HW/orbit-desktop ~/.agents/skills/orbit-desktop     # Codex
-
-“用 orbit-desktop 给我设计一个雨夜图书馆风格的桌面，要有一键收纳和一键收工。”</pre>
-  </section>
-
-  <div class="actions">
-    <a href="https://github.com/XIANYU-HW/orbit-desktop">GitHub</a>
-    <a class="ghost" href="https://github.com/XIANYU-HW/orbit-desktop/archive/refs/heads/main.zip">下载 · Download ZIP</a>
-  </div>
-
-  <footer>演示使用示例数据，按钮不会改动你的电脑。The demos use sample data; nothing on your computer changes.</footer>
+<div class="wrap">
+<nav aria-label="主导航">
+<a class="brand" href="./"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="7" stroke="currentColor"/><ellipse cx="20" cy="20" rx="19" ry="10" transform="rotate(-35 20 20)" stroke="currentColor"/><circle cx="32" cy="9" r="2.5" fill="currentColor"/></svg>ORBIT DESKTOP</a>
+<div class="nav-links"><a href="#worlds">探索主题</a><a href="#method">设计方法</a><a href="https://github.com/XIANYU-HW/orbit-desktop">GitHub ↗</a></div>
+</nav>
+<header class="hero">
+<div><div class="eyebrow">A skill for worlds worth inhabiting</div><h1>把你想象的世界，<br>做成每天使用的桌面。</h1><p class="en">Turn a world you love into a desktop you can live in.</p></div>
+<div><p class="intro">早晨，在须弥记一行灵感。深夜，在三日凌空的观测站归档最后一份文件。<br><br><strong>你给出想象，AI 把画面、动效和日常工具一起写成桌面。</strong></p><div class="tags"><span class="tag">Codex · Claude Code</span><span class="tag">Windows + macOS</span><span class="tag">可自定义功能</span></div></div>
+</header>
+<main id="worlds">
+<section class="chapter cosmos" aria-labelledby="cosmos-title">
+<div class="chapter-head"><div><div class="chapter-num">01 / UNPREDICTABILITY & ORDER</div><h2 id="cosmos-title">三体 · 文明观测站</h2><span class="english">Civilization Observatory</span></div><p class="thesis">在不可预测的世界，留下秩序。<br>让“观测与文明延续”成为桌面的行为逻辑。</p></div>
+<figure class="scene"><a href="themes/threebody-observatory/?demo=1&lang=zh-CN" aria-label="打开三体互动演示"><img id="cosmos-image" src="themes/threebody-observatory/preview.png" alt="三体主题运行画面：青铜观测环、三日轨迹、专注计时与文明工具" width="1920" height="1080" fetchpriority="high"></a><small>Running theme / 实际运行截图</small><a class="enter" href="themes/threebody-observatory/?demo=1&lang=zh-CN">进入观测站 <span>↗</span></a></figure>
+<div class="world-info">
+<div><h3>从恒纪元，到乱纪元</h3><p>切换纪元，三日轨迹改变。指针化作观测探针，点击留下局部扰动。星空对你的介入作出回应。</p><div class="mode-switch" aria-label="三体展示画面"><button data-image="cosmos-image" data-src="themes/threebody-observatory/preview.png" aria-pressed="true">恒纪元</button><button data-image="cosmos-image" data-src="docs/showcase/threebody-comparison.png" aria-pressed="false">观测对照</button></div></div>
+<div><h3>为注意力留一段确定时间</h3><p>用 25 分钟专注计时建立工作节奏。钟表、天气与工具在同一座观测台上各安其位。</p></div>
+<div><h3>日常，也有文明的尺度</h3><p>归档文件、打开资料、结束工作，化为文明归档、文明资料库与静默值守。命名有意境，功能有说明。</p></div>
+</div>
+</section>
+<section class="chapter garden" aria-labelledby="garden-title">
+<div class="chapter-head"><div><div class="chapter-num">02 / KNOWLEDGE & GROWTH</div><h2 id="garden-title">原神 · 须弥知识之庭</h2><span class="english">Sumeru · Garden of Knowledge</span></div><p class="thesis">让知识生长，让日常融入风景。<br>在树城、瀑布与元素之间，设计另一种生活节奏。</p></div>
+<figure class="scene"><a href="themes/genshin-sumeru/?demo=1&lang=zh-CN" aria-label="打开须弥互动演示"><img id="garden-image" src="themes/genshin-sumeru/preview.png" alt="须弥主题运行画面：树城瀑布、金色植物纹样、林间便笺与卷宗工具" width="1920" height="1080" loading="lazy"></a><small>Running theme / 实际运行截图</small><a class="enter" href="themes/genshin-sumeru/?demo=1&lang=zh-CN">漫步知识之庭 <span>↗</span></a></figure>
+<div class="world-info">
+<div><h3>触碰庭院，让元素相遇</h3><p>草木生长、水色绽放、雷光沿枝脉游走。不同选择带来不同回应，水光与流叶为静候时的庭院保留生机。</p><div class="mode-switch" aria-label="须弥展示画面"><button data-image="garden-image" data-src="themes/genshin-sumeru/preview.png" aria-pressed="true">庭院</button><button data-image="garden-image" data-src="docs/showcase/genshin-bloom.png" aria-pressed="false">绽放</button></div></div>
+<div><h3>把灵感，留在林间</h3><p>打开金色叶印，写下便笺。卷宗、时钟与天气采用不同形态，在繁复的风景中仍然清晰可用。</p></div>
+<div><h3>同样的工具，全新的形态</h3><p>以植物纹样、书卷与金色边饰承载归档、资料入口和收工。布局随主题重新组织。</p></div>
+</div>
+<p class="note">在线演示使用示例天气、文件与应用数据，系统按钮不操作你的电脑。计时可用；便笺仅保存在当前浏览器本地。建议在电脑浏览器体验。</p>
+</section>
+<section id="method" class="method">
+<div><div class="eyebrow">From a brief to a living desktop</div><h2>主题有内核，<br>每个细节有来处。</h2><p>起点是一次桌面大扫除。后来，想让按钮融入风景，让河流流动，让星空回应鼠标。一次次迭代留下的设计与交付方法，被写成了这个 Skill。<br><br>下一套世界可以完全不同：静态、摄影、像素或实用工作台，都成立。</p></div>
+<ol class="steps"><li><div><h3>理解世界，也理解你的工作</h3><p>明确主题的意义、必需功能、屏幕与性能偏好。</p></div></li><li><div><h3>一起设计画面、动作和工具</h3><p>用合适的构图、素材和反馈建立联系，保留清楚的操作路径。</p></div></li><li><div><h3>亲眼看，亲手试，再交付</h3><p>实际截图、交互与临时数据测试，分别验证浏览器和桌面宿主。</p></div></li><li><div><h3>保留旧主题，继续生长</h3><p>独立主题目录、可扩展功能与可回退的操作，支持下一次灵感。</p></div></li></ol>
+</section>
+<section class="start" id="start">
+<div><div class="eyebrow">Your next world</div><h2>下一次，从你的想法开始。</h2><blockquote class="prompt">“做一个深海研究站桌面。探索与记录是主题，要有待办、资料入口和专注计时，让声呐与鼠标互动。”</blockquote></div>
+<div><p>将 Skill 安装到 Codex 或 Claude Code，直接描述你的需求。也可以下载示例，在启动菜单中预览与换主题。</p><code>git clone https://github.com/XIANYU-HW/orbit-desktop ~/.agents/skills/orbit-desktop</code><div class="links"><a class="button primary" href="https://github.com/XIANYU-HW/orbit-desktop#开始使用">安装与使用 ↗</a><a class="button" href="https://github.com/XIANYU-HW/orbit-desktop/archive/refs/heads/main.zip">下载 ZIP ↓</a></div></div>
+</section>
+<details class="details"><summary>运行方式、基础示例与创作说明</summary><p>桌面宿主：Windows 使用 Lively，macOS 使用 Plash；Linux 可在浏览器预览。本机功能由独立 Python 助手提供。两套主展示的整理与收工会先显示确认，文件整理保留撤销记录；收工只请求正常退出，未保存文档与网页会话由应用处理。复杂输入与性能需在实际宿主验证。</p><p>基础示例仍可体验：<a href="themes/ink-study/?demo=1">墨痕书房</a> · <a href="themes/deep-orbit/?demo=1">深空轨道</a> · <a href="themes/defrag-95/?demo=1">磁盘整理 95</a>。主展示是原创同人演绎，与三体或原神官方无关联；轨迹与元素互动不是科学或游戏规则模拟。<a href="https://github.com/XIANYU-HW/orbit-desktop/blob/main/docs/showcase-art.md">素材来源与生成提示</a> · <a href="https://github.com/XIANYU-HW/orbit-desktop/blob/main/docs/showcase-verification.md">实际验证记录</a>。</p></details>
 </main>
+<footer><div>ORBIT DESKTOP · DESIGNED TO BE INHABITED</div><div>Code under MIT · Unofficial fan showcases · <a href="https://github.com/XIANYU-HW/orbit-desktop">Source on GitHub ↗</a></div></footer>
+</div>
+<script>
+document.querySelectorAll('[data-image]').forEach(function(button){
+ button.addEventListener('click',function(){
+  var img=document.getElementById(button.dataset.image);
+  img.src=button.dataset.src;
+  button.parentElement.querySelectorAll('button').forEach(function(peer){peer.setAttribute('aria-pressed',String(peer===button))});
+ });
+});
+</script>
 </body>
 </html>

@@ -2,8 +2,13 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -11,12 +16,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        # Keep the macOS generation explicit; see the CI browser note in
+        # references/troubleshooting.md before moving this render gate.
+        os: [windows-latest, macos-15, ubuntu-latest]
         python: ["3.12"]
         include:
           - os: ubuntu-latest
             python: "3.9"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     env:
       ORBIT_WORKSPACE: ${{ github.workspace }}/.ci-workspace
       PYTHONIOENCODING: utf-8
@@ -35,14 +43,28 @@ jobs:
         if: runner.os == 'Linux'
         run: for f in sdk/orbit.js themes/*/scene.js templates/theme/scene.js; do node --check "$f"; done
 
+      - name: Set up a dedicated macOS test browser
+        if: runner.os == 'macOS'
+        id: test-chrome
+        # Pin the tested browser version. The exact-version installer also
+        # preserves the outer .app bundle (the stable-channel installer does not).
+        uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2
+        with:
+          chrome-version: '155.0.8059.39'
+
       - name: Doctor
+        env:
+          ORBIT_BROWSER: ${{ steps.test-chrome.outputs.chrome-path }}
         run: |
           python runtime/orbit.py init --lang en
           python runtime/orbit.py doctor
 
       - name: Render previews in a real browser
         if: runner.os != 'Linux'
+        timeout-minutes: 12
         shell: bash
+        env:
+          ORBIT_BROWSER: ${{ steps.test-chrome.outputs.chrome-path }}
         run: |
           python runtime/orbit.py start
           mkdir -p previews
@@ -51,7 +73,85 @@ jobs:
             python runtime/orbit.py snapshot "$t" --out "previews/$t-zh-night.png" --query "lang=zh&daypart=night&weather=rain"
             python runtime/orbit.py snapshot "$t" --out "previews/$t-1366.png" --size 1366x768
           done
-          python runtime/orbit.py stop
+          python runtime/orbit.py snapshot threebody-observatory --out previews/threebody-default.png --query "lang=zh"
+          python runtime/orbit.py snapshot threebody-observatory --out previews/threebody-comparison.png --query "lang=zh&review-state=comparison"
+          python runtime/orbit.py snapshot genshin-sumeru --out previews/sumeru-default.png --query "lang=zh"
+          python runtime/orbit.py snapshot genshin-sumeru --out previews/sumeru-bloom.png --query "lang=zh&review-state=bloom"
+          python runtime/orbit.py new-theme ci-starter
+          python runtime/orbit.py review ci-starter --quick --out previews/starter-review
+
+      - name: Diagnose macOS browser after a render failure
+        if: failure() && runner.os == 'macOS'
+        timeout-minutes: 3
+        shell: python
+        env:
+          ORBIT_BROWSER: ${{ steps.test-chrome.outputs.chrome-path }}
+        run: |
+          import os, subprocess, sys, tempfile, threading, time
+          from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+          from pathlib import Path
+          from urllib.parse import quote
+          sys.path.insert(0, str(Path("runtime").resolve()))
+          from orbitcore import hosts
+          browser = hosts.find_browser()
+          print("Browser:", browser, flush=True)
+          subprocess.run([browser, "--version"], timeout=10, check=False)
+          logs = Path(os.environ["ORBIT_WORKSPACE"]) / "logs"
+          logs.mkdir(parents=True, exist_ok=True)
+          Path("previews").mkdir(exist_ok=True)
+          # Both modes create our own process group. Only that exact group is
+          # reaped; never signal the runner's group or match browser names.
+          def diagnose(mode, transport, url):
+              case = transport + "-" + mode
+              image = Path("previews", "browser-diagnostic-" + case + ".png").resolve()
+              with tempfile.TemporaryDirectory(prefix="orbit-browser-diagnostic-") as profile:
+                  args = [browser, "--headless=new", "--hide-scrollbars", "--mute-audio", "--no-first-run",
+                          "--no-default-browser-check", "--disable-extensions", "--disable-sync",
+                          "--disable-background-networking", "--disable-component-update",
+                          "--use-mock-keychain", "--password-store=basic",
+                          "--user-data-dir=" + profile, "--window-size=800,600",
+                          "--virtual-time-budget=1000", "--screenshot=" + str(image), url]
+                  errpath = logs / ("browser-diagnostic-" + case + ".stderr.log")
+                  outpath = logs / ("browser-diagnostic-" + case + ".stdout.log")
+                  with outpath.open("wb") as stdout, errpath.open("wb") as stderr:
+                      kwargs = {"start_new_session": True} if mode == "session" else {"process_group": 0}
+                      started, wall_started = time.monotonic(), time.time()
+                      proc = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr, **kwargs)
+                      print(case, "pid", proc.pid, "started", wall_started, flush=True)
+                      try:
+                          result = proc.wait(timeout=20)
+                          print(case, "exit", result, flush=True)
+                          print(case, "remaining group cleanup:", hosts._stop_headless(proc), flush=True)
+                      except subprocess.TimeoutExpired:
+                          print(case, "timeout; cleanup:", hosts._stop_headless(proc), flush=True)
+                      except BaseException:
+                          hosts._stop_headless(proc)
+                          raise
+                  print(case, "elapsed seconds:", time.monotonic() - started,
+                        "image bytes:", image.stat().st_size if image.exists() else 0,
+                        "image write seconds:", image.stat().st_mtime - wall_started if image.exists() else None,
+                        flush=True)
+                  print(errpath.read_text(errors="replace"), flush=True)
+          html = b"<!doctype html><title>ORBIT diagnostic</title><h1>ORBIT render check</h1>"
+          class Page(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  self.send_response(200)
+                  self.send_header("Content-Type", "text/html; charset=utf-8")
+                  self.send_header("Content-Length", str(len(html)))
+                  self.end_headers()
+                  self.wfile.write(html)
+              def log_message(self, *args):
+                  pass
+          server = ThreadingHTTPServer(("127.0.0.1", 0), Page)
+          threading.Thread(target=server.serve_forever, daemon=True).start()
+          try:
+              for transport, url in (("data", "data:text/html," + quote(html.decode())),
+                                     ("http", "http://127.0.0.1:" + str(server.server_port) + "/")):
+                  for mode in ("session", "group"):
+                      diagnose(mode, transport, url)
+          finally:
+              server.shutdown()
+              server.server_close()
 
       - name: Show helper logs after a failure
         if: failure()
@@ -60,9 +160,17 @@ jobs:
           for f in "$ORBIT_WORKSPACE"/logs/*.log; do echo "== $f"; tail -n 60 "$f" || true; done
           (lsof -nP -iTCP:47321 -sTCP:LISTEN || netstat -ano | grep 47321 || true) 2>/dev/null
 
+      - name: Stop the CI helper
+        if: always() && runner.os != 'Linux'
+        timeout-minutes: 2
+        run: python runtime/orbit.py stop
+
       - name: Upload previews
-        if: runner.os != 'Linux'
+        if: always() && runner.os != 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: previews-${{ runner.os }}
-          path: previews/
+          include-hidden-files: true
+          path: |
+            previews/
+            .ci-workspace/logs/

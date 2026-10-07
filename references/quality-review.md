@@ -1,75 +1,98 @@
-# Reviewing a theme before the user sees it
+# Reviewing a desktop theme
 
-Users judge a desktop in one glance. A theme that is clever but looks cheap has failed, and "cheap"
-is almost always the same handful of faults: a system fallback font, flat fills, hard outlines, too
-many sizes and colours, choppy or mechanical motion, banding in dark gradients, and a browser bubble
-popping up on top. The agent is the art director here. Nothing is "done" until it has been looked at,
-in every size and state, and every item below has an honest answer.
+Acceptance checks whether the result fulfills the brief and works in the intended environment. A
+screenshot, automated report and real host test answer different parts. Record observations, evidence
+paths and environment details. Use pass, needs repair, unverified, or not applicable with a reason.
+Never turn missing evidence into a pass.
 
-## The loop
+## The review loop
 
-1. **Run the review.** `orbit.py review <id>` renders the theme at 1920×1080, 1366×768, 2560×1440,
-   3440×1440 and 1280×1024, in day, night with rain and English, plus any states the theme lists in
-   theme.json (`"review": {"states": {"praying": "pray=…"}}`: query strings your scene.js understands).
-   The page also measures itself (fonts, fallbacks, overlaps, tiny text, icon and taskbar zones,
-   script errors, network requests). Everything lands in `~/OrbitDesktop/review/<id>-<time>/`.
-2. **Look at every picture.** Open each PNG and answer the checklist below item by item, writing down
-   what you see, not what you intended. Zoom into the details: text edges, the brightest and darkest
-   areas, anything small.
-3. **Fix and repeat** until the automatic findings are clean and every checklist answer is "yes".
-4. **Check the real desktop after installing.** Ask the user, then `orbit.py capture` and look at the
-   picture: the theme behind real icons and the taskbar, at the real resolution and scaling. If you can
-   drive the mouse (computer use), hover and click the controls and capture again; if a function opens
-   a window, open it and capture that too. Watch for anything the host adds: a translate bar, a
-   "press F11" bubble, a permission prompt, a focus that lands in the wrong place.
-5. **Then show the user**, with the pictures, and say what you checked.
+1. **Set scope.** Map requested functions and visual requirements to checks. Note theme/version,
+   host/browser, OS, display size/scale, language and the original installation to preserve.
+2. **Build repeatable cases.** Use `?demo=1` and fixture queries. Declare applicable cases in
+   `theme.json` under `review.states`, implement each query, and verify the intended state appeared.
+   A query name alone creates nothing. Fixtures must never run real actions. See theme-guide.md.
+3. **Run automatic checks.** `orbit.py validate <id>` then `orbit.py review <id>`. Inspect coverage,
+   measurements, failures and image paths, not only the exit code. `--quick` is an iteration aid with
+   a reduced matrix; its report does not establish full acceptance.
+4. **Inspect actual images.** Open every image used for acceptance at overall and detail scales.
+   Compare direction, hierarchy and requested features with the brief across target sizes and relevant
+   state/language combinations. Fix defects and re-render affected cases.
+5. **Exercise a running preview.** In demo mode test hover, focus, clicking, cancellation, repeated
+   activation and full transitions. Watch motion and pause/resume. Test custom action behavior on
+   isolated data separately and read back the resulting state. Simulated success proves presentation only.
+6. **Verify the actual host when available.** Within authorized scope and permitted UI tools, inspect
+   the desktop and companion windows: icons, taskbar/Dock, scaling, input, focus, translation prompts,
+   reconnect and motion pause. Do not switch the host/startup settings merely to collect evidence.
+   If Windows, Plash or the native Mac app is unavailable, identify that environment as unverified.
+7. **Deliver evidence.** Give requirement coverage, representative final images, changes, recovery and
+   limitations. Separate automatic checks, visual inspection, action behavior and host verification.
+   Unavailable checks need not prevent showing useful work, but prevent claiming that capability passed.
+
+Page measurements are heuristics for DOM text, selected controls, fonts, resources and script errors.
+They do not fully inspect canvas/SVG content, prove glyph coverage/contrast, measure motion quality,
+inspect browser chrome or establish that an OS effect succeeded. Static review disables transitions
+for capture. Use visual and running checks for these gaps.
+
+## Reproducible interaction cases
+
+For applicable features record trigger, fixture/input, expected result, observation and evidence.
+Absent features can be marked not applicable.
+
+| Feature | Cases to cover |
+|---|---|
+| Action control | Idle, hover/focus, preview/armed, cancel, running, done, failure, empty, unavailable, undo/recovery |
+| Lists/counts | Zero, one, maximum/overflow, long names, partial success and skipped items |
+| Data | Populated, missing, stale/offline, reconnect; distinguish samples from actual readings |
+| Text/AI entry | Empty/long text, Chinese composition, selection/paste, submit/cancel, blur/return, reopen with draft, handoff failure and confirmed destination state |
+| Motion | Idle/event cycle, repeated/large events, reduced motion, hidden/resume, resource use |
+| Host window | First/repeat launch, focus/return, unintended browser prompts, close behavior |
+
+Save fixtures as deterministic data or queries. Reuse live rendering functions where possible, freeze
+a meaningful point for a still, then test the transition separately. Include canceled and failed
+operations. Never click a live file/app/system action just to see its animation without authorization.
 
 ## The checklist
 
-**Typography**
-- [ ] Every text is in the intended font: no fallback (the review lists any). Fonts are bundled in the
-      theme (`orbit.py fonts`), not loaded from the network at run time.
-- [ ] At most two families (one display voice, one text face) and a short scale: display, title,
-      text, caption. Sizes come from that scale, not ad hoc.
-- [ ] Tracking is deliberate: wide letter-spacing only on short labels and capitals; Chinese body text
-      at 0–0.2em. Nothing looks like a slide template.
-- [ ] Nothing is under 11px at 1366×768; light weights are not used below ~16px (they shimmer on Windows).
-- [ ] Numbers that change (clocks, counters) use tabular figures and do not jitter.
+Write an observation and evidence path for each applicable item, or a concrete unverified/not-applicable
+reason. This is a review record, not an automatic aesthetic score or a prescribed style.
 
-**Light, material and colour**
-- [ ] One focal point, clearly the brightest and sharpest thing on screen.
-- [ ] No large flat fills: big areas carry a gradient, texture or light falloff.
-- [ ] Depth: far things are softer and hazier, near out-of-focus things are blurred, the focal subject
-      is crisp. No hard outlines around shapes that should read as silhouettes (use rim light).
-- [ ] Glows are soft (pre-blurred sprites or layers), never a hard ring or a visible square edge.
-- [ ] Dark gradients do not band (add the film grain overlay or noise).
-- [ ] Four to six colours from the world's materials; accents used sparingly; day and night both look intended.
+**Requirements and scope**
+- [ ] Every requested feature and preservation constraint maps to behavior and a check.
+- [ ] The result follows the chosen direction; no function was omitted for lack of a metaphor.
+- [ ] A recoverable prior version/config is identified; existing native Mac ORBIT remains intact
+      unless changing it was explicitly requested.
 
-**Motion**
-- [ ] Continuous motion runs at 60 fps (`Orbit.loop(draw, { fps: 60 })`) on soft pre-rendered layers;
-      it pauses when hidden.
-- [ ] Ambient motion is slow and organic (noise fields, long cycles); nothing jitters, strobes or
-      moves linearly from a standing start.
-- [ ] Event motion (a function running) reads as the world's own event, item by item, with easing.
-- [ ] `prefers-reduced-motion` is respected.
+**Typography and composition**
+- [ ] Actual fonts, glyphs, readable size/contrast, spacing and numeric stability match the direction
+      on the tested platform; intentional system or pixel fonts are acceptable.
+- [ ] Hierarchy, alignment, margins and usable space fit the user's desktop.
+- [ ] Detail inspection found no accidental seams, placeholder art, clipped effects or rough edges.
+- [ ] Target screen shapes, long labels and populated states fit without accidental overlap/clipping.
 
-**Composition and layout**
-- [ ] The icon side of the screen and the taskbar zone are calm; the review reports no text there.
-- [ ] Nothing overlaps or leaves the screen at any of the reviewed sizes, including 3440×1440 and 1280×1024.
-- [ ] Controls sit in one cluster near where the eye rests, aligned to each other; margins are consistent.
-- [ ] At least a third of the screen is quiet.
+**Motion and resources**
+- [ ] Moving content was watched in a running preview; timing and feedback match the direction.
+      Static themes are intentionally static.
+- [ ] Pause/resume, reduced motion and repeated effects work where tested; resource use is measured
+      on the stated machine or left unverified.
+- [ ] Implemented frame cap, rendering scale and bounded effects fit the budget; nominal fps alone
+      was not used as evidence of smoothness.
 
-**Interaction**
-- [ ] Every clickable thing reacts to hover, and to a click, in the world's language.
-- [ ] Something in the scene responds to the cursor (light, particles, parallax), subtly.
-- [ ] Confirm, running, done, error, empty, undo and offline states each look designed (snapshot them).
-- [ ] Typing never happens on the wallpaper itself: wallpaper hosts pass clicks, not the keyboard or an
-      input method. A theme that takes text opens its own window (see theme-guide.md).
+**Interaction and results**
+- [ ] Applicable fixtures actually rendered; triggers and outcomes are recorded, including error,
+      empty, cancel, partial and recovery paths.
+- [ ] Controls explain their effect/scope and show hover/focus/disabled/running states; live feedback
+      reflects actual results and simulated feedback is identified.
+- [ ] Text preserves drafts across focus changes and failed handoff; language/IME behavior was tested
+      when input is present. AI send/receive claims have separate evidence.
+- [ ] Custom actions were checked on disposable data and resulting state read back; simulated success
+      was not counted as a real operation.
 
-**Host and robustness**
-- [ ] No browser UI appears: `<html translate="no">` (the SDK sets it) and windows opened by the
-      theme use a quiet profile (`hosts.quiet_profile`): no translate bubble, no first-run pages.
-- [ ] Works offline: the review shows no network requests except weather through the helper.
-- [ ] No script errors; the theme recovers when the helper restarts (offline state, then back).
-- [ ] Idle cost is acceptable on the user's machine (Task Manager / Activity Monitor: the wallpaper
-      process stays low while nothing happens).
+**Host and evidence**
+- [ ] Expected cases, images and measurements reconcile. Missing evidence is flagged; findings were
+      repaired or explained as intentional with supporting inspection.
+- [ ] Offline assets and helper recovery were checked for the promised use; unavailable data is clear.
+- [ ] Available real hosts and companion windows were checked for scaling, desktop obstacles,
+      keyboard/IME, focus and translation/full-screen prompts. Browser-only evidence is labeled.
+- [ ] Delivery identifies automatic, visual, action and per-host results, remaining limitations and
+      how to restore the prior configuration.

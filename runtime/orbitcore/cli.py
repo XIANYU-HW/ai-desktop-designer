@@ -355,12 +355,12 @@ def cmd_review(args: argparse.Namespace) -> int:
     target = Path(args.out).expanduser() if args.out else ws.root / "review" / f"{theme_id}-{time.strftime('%Y%m%d-%H%M%S')}"
     out.say(f"正在审阅 {theme_id}（多尺寸、多状态截图 + 页面自检）…", f"Reviewing {theme_id} (sizes, states and the page's own measurements)…")
     worst, report = review.run(folder, theme, int(config["port"]), target, quick=args.quick, wait_ms=args.wait)
-    for line in report.read_text(encoding="utf-8").split("## Pictures")[0].splitlines()[6:]:
+    for line in report.read_text(encoding="utf-8").split("## Pictures")[0].splitlines()[2:]:
         if line.strip():
             print(line)
     out.say(
-        f"\n报告和截图：{report.parent}\n下一步：逐张打开截图，按报告里的清单逐项检查；不达标就改，然后再审阅一次。",
-        f"\nReport and pictures: {report.parent}\nNext: open every picture and answer the checklist in the report; fix what falls short and review again.",
+        f"\n报告和截图：{report.parent}\n下一步：检查实际画面并记录证据；交互、动效和真实桌面宿主需要另行验证。",
+        f"\nReport and pictures: {report.parent}\nNext: inspect the images and record evidence; interactions, motion and the real desktop host need separate verification.",
     )
     return 1 if worst >= 2 else 0
 
@@ -573,7 +573,8 @@ def _put_on_desktop(ws: Workspace, out: Out) -> bool:
     if env.IS_WINDOWS:
         ok, detail = hosts.install_lively(ws, url, theme_dir)
         if ok:
-            out.say("已通过 Lively Wallpaper 设为桌面。", "Set as your desktop with Lively Wallpaper.")
+            out.say("Lively Wallpaper 已接受设置请求。请在桌面确认主题已显示；当前尚未验证实际显示状态。",
+                    "Lively Wallpaper accepted the request. Check that the theme appears on the desktop; its display has not been verified.")
             return True
         if detail == "lively-missing":
             out.say(
@@ -597,6 +598,7 @@ def _put_on_desktop(ws: Workspace, out: Out) -> bool:
                 f"If it is not there, quit and reopen Lively; only if it is still missing click '+' and paste the copied address {url}.",
             )
             return False
+        out.say(f"Lively 设置请求失败：{detail}", f"Lively request failed: {detail}")
         copied = hosts.copy_to_clipboard(url)
         out.say(
             "请在 Lively 里手动添加一次：打开 Lively → 点左上角 “+” → 在网址栏粘贴 "
@@ -608,11 +610,17 @@ def _put_on_desktop(ws: Workspace, out: Out) -> bool:
     if env.IS_MAC:
         ok, detail = hosts.install_plash(url)
         if ok:
-            out.say("已添加到 Plash。要点按桌面上的按钮，请在 Plash 菜单里打开“浏览模式”。",
-                    "Added to Plash. To click buttons on the desktop, turn on Browsing Mode in the Plash menu.")
+            out.say("Plash 添加请求已提交。请在 Plash 中确认 Orbit Desktop 已添加并在桌面显示；当前尚未验证实际显示状态。"
+                    "要点按桌面上的按钮，请在 Plash 菜单里打开“浏览模式”。",
+                    "The Plash add request was submitted. Confirm that Orbit Desktop is listed in Plash and appears on the desktop; "
+                    "its display has not been verified. To click desktop buttons, turn on Browsing Mode in the Plash menu.")
             return True
-        out.say(f"需要先安装免费的 Plash：{hosts.PLASH_APP_STORE}，装好后再运行一次。",
-                f"Install the free Plash app first: {hosts.PLASH_APP_STORE}, then run this again.")
+        if detail == "plash-missing":
+            out.say(f"需要先安装免费的 Plash：{hosts.PLASH_APP_STORE}，装好后再运行一次。",
+                    f"Install the free Plash app first: {hosts.PLASH_APP_STORE}, then run this again.")
+        else:
+            out.say(f"Plash 添加请求失败：{detail}\n请在 Plash 中手动添加 {url}。",
+                    f"Plash add request failed: {detail}\nAdd {url} in Plash manually.")
         return False
     out.say(f"Linux 上请用支持网页壁纸的工具（如 Komorebi、Hidamari）加载：{url}",
             f"On Linux, load {url} with a web-wallpaper tool such as Komorebi or Hidamari.")
@@ -626,8 +634,13 @@ def cmd_install(args: argparse.Namespace) -> int:
     if not _require_helper(ws, out):
         return 1
     placed = _put_on_desktop(ws, out)
-    if not args.no_autostart:
-        hosts.set_autostart(ws, True)
+    if placed and getattr(args, "autostart", False) and not getattr(args, "no_autostart", False):
+        try:
+            hosts.set_autostart(ws, True)
+        except (OSError, subprocess.SubprocessError) as exc:
+            out.say(f"桌面设置请求已提交，但开机启动设置失败：{exc}",
+                    f"The desktop request was submitted, but setting start at sign-in failed: {exc}")
+            return 1
         out.say("已设置开机自动启动桌面助手（随时可用 orbit.py autostart off 关闭）。",
                 "The helper now starts when you sign in (turn off with: orbit.py autostart off).")
     return 0 if placed else 3
@@ -636,17 +649,31 @@ def cmd_install(args: argparse.Namespace) -> int:
 def cmd_uninstall(args: argparse.Namespace) -> int:
     ws = _workspace(args)
     out = Out(_lang(ws))
-    hosts.set_autostart(ws, False)
+    autostart_removed = True
+    try:
+        hosts.set_autostart(ws, False)
+    except (OSError, subprocess.SubprocessError) as exc:
+        autostart_removed = False
+        out.say(f"未能关闭开机启动：{exc}", f"Could not remove start at sign-in: {exc}")
+    removed = True
     if env.IS_WINDOWS:
-        hosts.uninstall_lively()
-    hosts.stop_background(ws)
-    out.say(
-        f"已关闭开机启动并停止桌面助手。你的主题和设置仍保存在 {ws.root}。"
-        + ("\nMac 上请在 Plash 的网站列表里删除 Orbit Desktop。" if env.IS_MAC else ""),
-        f"Autostart removed and helper stopped. Your themes and settings stay in {ws.root}."
-        + ("\nOn a Mac, remove Orbit Desktop from Plash's website list." if env.IS_MAC else ""),
-    )
-    return 0
+        removed, detail = hosts.uninstall_lively()
+        if not removed:
+            out.say("请在 Lively 中找到 Orbit Desktop，只关闭并删除该壁纸条目。"
+                    "程序无法确认当前壁纸的归属，因此宿主移除仍需手动完成。",
+                    "In Lively, find Orbit Desktop, then close and delete only that wallpaper entry. "
+                    "The current wallpaper's ownership could not be verified, so host removal needs this manual step.")
+    elif env.IS_MAC and hosts.find_plash():
+        removed = False
+        out.say("请在 Plash 的网站列表里删除 Orbit Desktop；宿主移除仍需手动完成。",
+                "Remove Orbit Desktop from Plash's website list; host removal needs this manual step.")
+    stopped = hosts.stop_background(ws)
+    if autostart_removed:
+        out.say("已关闭开机启动。", "Start at sign-in removed.")
+    out.say("桌面助手已停止。" if stopped else "没能停止桌面助手。",
+            "Helper stopped." if stopped else "Could not stop the helper.")
+    out.say(f"你的主题和设置仍保存在 {ws.root}。", f"Your themes and settings stay in {ws.root}.")
+    return 1 if not autostart_removed or not stopped else (0 if removed else 3)
 
 
 def cmd_autostart(args: argparse.Namespace) -> int:
@@ -656,7 +683,11 @@ def cmd_autostart(args: argparse.Namespace) -> int:
     if args.state == "status":
         out.say("开机启动：" + ("开" if hosts.autostart_enabled() else "关"), "Start at sign-in: " + ("on" if hosts.autostart_enabled() else "off"))
         return 0
-    hosts.set_autostart(ws, args.state == "on")
+    try:
+        hosts.set_autostart(ws, args.state == "on")
+    except (OSError, subprocess.SubprocessError) as exc:
+        out.say(f"开机启动设置失败：{exc}", f"Could not change start at sign-in: {exc}")
+        return 1
     out.say("开机启动已" + ("打开" if args.state == "on" else "关闭") + "。", "Start at sign-in turned " + args.state + ".")
     return 0
 
@@ -746,7 +777,7 @@ def cmd_quickstart(args: argparse.Namespace) -> int:
         ("3", out.t("设为桌面壁纸，并开机自动启动", "Put it on the desktop and start at sign-in")),
         ("4", out.t("设置天气城市", "Set the weather place")),
         ("5", out.t("停止桌面助手", "Stop the helper")),
-        ("6", out.t("恢复原样（取消开机启动，移除桌面主题）", "Undo everything (remove autostart and the desktop page)")),
+        ("6", out.t("移除助手（桌面条目可能需手动移除）", "Remove the helper (desktop entries may need manual removal)")),
         ("d", out.t("诊断（遇到问题时把结果发给 AI 或作者）", "Diagnose (share the output when something is wrong)")),
         ("q", out.t("退出菜单（助手继续在后台运行）", "Leave this menu (the helper keeps running)")),
     ]
@@ -771,21 +802,17 @@ def cmd_quickstart(args: argparse.Namespace) -> int:
                     subprocess.run(["winget", "install", "-e", "--id", "rocksdanister.LivelyWallpaper",
                                     "--accept-package-agreements", "--accept-source-agreements"])
             placed = _put_on_desktop(ws, out)
-            hosts.set_autostart(ws, True)
             if placed:
-                out.say("  完成。开机后桌面会自动出现。", "  Done. It will come back after you sign in.")
+                cmd_autostart(argparse.Namespace(workspace=args.workspace, state="on"))
         elif choice == "4":
             query = (ask(out.t("  城市名（中文或英文）：", "  City name: ")) or "").strip()
             if query:
                 ns = argparse.Namespace(workspace=args.workspace, query=query, pick=None)
                 cmd_set_location(ns)
         elif choice == "5":
-            hosts.stop_background(ws)
-            out.say("  已停止。", "  Stopped.")
-            return 0
+            return cmd_stop(argparse.Namespace(workspace=args.workspace))
         elif choice == "6":
-            cmd_uninstall(argparse.Namespace(workspace=args.workspace))
-            return 0
+            return cmd_uninstall(argparse.Namespace(workspace=args.workspace))
         elif choice == "d":
             cmd_doctor(argparse.Namespace(workspace=args.workspace))
         elif choice in ("q", "quit", "exit"):
@@ -871,9 +898,11 @@ def build_parser() -> argparse.ArgumentParser:
     p = add("config", cmd_config, "show or set language, units or port")
     p.add_argument("key", nargs="?")
     p.add_argument("value", nargs="?")
-    p = add("install", cmd_install, "put the theme on the desktop and start the helper at sign-in")
-    p.add_argument("--no-autostart", action="store_true")
-    add("uninstall", cmd_uninstall, "remove autostart, take Orbit off the desktop and stop the helper")
+    p = add("install", cmd_install, "request the desktop theme; start at sign-in is opt-in")
+    startup = p.add_mutually_exclusive_group()
+    startup.add_argument("--autostart", action="store_true", help="start the helper at sign-in after the host accepts the request")
+    startup.add_argument("--no-autostart", action="store_true", help="keep start at sign-in unchanged (the default; retained for compatibility)")
+    add("uninstall", cmd_uninstall, "remove autostart and stop the helper; host entries may need manual removal")
     p = add("autostart", cmd_autostart, "start the helper at sign-in: on, off or status")
     p.add_argument("state", choices=["on", "off", "status"])
     p = add("export-theme", cmd_export, "zip a theme to share it")

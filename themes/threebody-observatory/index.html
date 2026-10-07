@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN" translate="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google" content="notranslate">
+  <meta name="theme-color" content="#080a0d">
+  <link rel="icon" href="data:,">
+  <title>三体 · 文明观测站</title>
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="scene-art" aria-hidden="true"></div>
+  <div class="scene-shade" aria-hidden="true"></div>
+  <canvas id="orbits" aria-hidden="true"></canvas>
+  <div class="scene-rule" aria-hidden="true"></div>
+
+  <header class="identity">
+    <div class="eyebrow"><span class="sigil" aria-hidden="true">III</span><span data-en="CIVILIZATION OBSERVATORY">文明观测计划</span><span class="edition">NO. 0001</span></div>
+    <h1><span data-en="THREE-BODY">三体</span><small data-en="OBSERVATORY">文明观测站</small></h1>
+    <p class="intro" data-en="Keep a record.<br>Even when the stars do not keep their course.">在群星失序之前<br>留下一份文明的记录。</p>
+    <div class="earth-time">
+      <p class="section-label" data-en="EARTH TIME">地球时</p>
+      <p class="clock" data-orbit-clock="{HH}:{mm}"></p>
+      <p class="date" data-orbit-clock="{YYYY} / {MM} / {DD} · {weekday}" data-en-clock="{YYYY} / {MM} / {DD} · {wd}"></p>
+      <p class="weather"><span data-orbit-weather="place"></span><span class="weather-dot">·</span><span data-orbit-weather="temperature"></span><span data-orbit-weather="condition"></span></p>
+    </div>
+  </header>
+
+  <div class="sky-caption"><span class="caption-rule"></span><span data-en="THREE SUNS / ONE FRAGILE WORLD">三日凌空 / 一颗脆弱的世界</span></div>
+  <button id="observation-field" class="observation-field" aria-label="观测区：移动指针观察，点击施加初始条件微扰" data-en-label="Observation field: move to inspect, click to perturb initial conditions"><span class="field-hint" data-en="MOVE TO OBSERVE · CLICK TO PERTURB">移入观测 · 点击微扰</span></button>
+
+  <main class="instrument">
+    <section class="observation-row" aria-label="天象观测" data-en-label="Orbital observation">
+      <div class="epoch-readout"><span class="section-label" data-en="CURRENT EPOCH">当前纪元</span><strong id="epoch-name">恒纪元</strong><span id="epoch-note" data-en="REFERENCE INITIAL CONDITIONS">参考初始条件</span></div>
+      <div class="observation-controls">
+        <div class="segmented" role="group" aria-label="纪元" data-en-label="Epoch">
+          <button id="epoch-stable" class="chip active" aria-pressed="true" data-en="Stable">恒纪元</button>
+          <button id="epoch-chaos" class="chip" aria-pressed="false" data-en="Chaotic">乱纪元</button>
+        </div>
+        <button id="compare" class="chip" aria-pressed="false"><span class="control-glyph" aria-hidden="true">∥</span><span data-en="Compare">微扰对照</span></button>
+        <button id="freeze" class="chip" aria-pressed="false"><span id="freeze-symbol" class="control-glyph" aria-hidden="true">Ⅱ</span><span id="freeze-label">冻结观测</span></button>
+      </div>
+      <div class="model-readout"><span id="model-time">T + 00.0</span><span data-en="FINITE MODEL · NOT AN EPHEMERIS">有限数值演示 · 非真实星历</span></div>
+    </section>
+
+    <section class="tool-row" aria-label="文明工具" data-en-label="Civilization tools">
+      <div class="tool-group">
+        <button class="tool" id="archive" data-orbit-action="tidy-files" data-orbit-op="run" data-orbit-confirm="always"><span class="tool-number">01</span><span class="tool-copy"><strong data-en="Civilization archive">文明归档</strong><span data-en="File loose desktop items">整理桌面散落文件</span></span><span class="tool-count" data-orbit-value="tidy-files.pending">—</span><span class="tool-arrow" aria-hidden="true">↗</span></button>
+        <button class="utility" id="undo" data-orbit-action="tidy-files" data-orbit-op="undo"><span data-en="Undo last archive">撤销上次归档</span><span aria-hidden="true">↶</span></button>
+      </div>
+      <div class="tool-group">
+        <button class="tool" id="library" data-orbit-action="open-path" data-orbit-params='{"path":"{documents}"}'><span class="tool-number">02</span><span class="tool-copy"><strong data-en="Civilization library">文明资料库</strong><span data-en="Open the Documents folder">打开文稿文件夹</span></span><span class="tool-arrow" aria-hidden="true">↗</span></button>
+        <p class="tool-caption" data-en="LOCAL RECORDS / ALWAYS WITH YOU">LOCAL RECORDS / 文明的记忆</p>
+      </div>
+      <div class="tool-group">
+        <button class="tool" id="wind-down" data-orbit-action="quit-apps" data-orbit-op="run"><span class="tool-number">03</span><span class="tool-copy"><strong data-en="Silent watch">静默值守</strong><span data-en="Ask eligible apps to quit">正常退出可关闭的应用</span></span><span class="tool-arrow" aria-hidden="true">↗</span></button>
+        <button class="utility" id="reopen" data-orbit-action="quit-apps" data-orbit-op="reopen"><span data-en="Reopen closed apps">重新打开上次关闭的应用</span><span aria-hidden="true">↶</span></button>
+      </div>
+      <div class="focus-panel">
+        <div class="focus-heading"><span class="section-label" data-en="A MOMENT OF ORDER">守望 · 一刻秩序</span><span id="focus-state">25 分钟专注</span></div>
+        <div class="focus-line"><output id="focus-time" aria-label="专注计时剩余时间">25:00</output><button id="focus-toggle" class="focus-toggle" data-en="Begin">开始守望</button><button id="focus-reset" class="focus-reset" aria-label="重置专注计时" data-en-label="Reset focus timer">↺</button></div>
+      </div>
+    </section>
+    <footer class="status-row"><span class="status-light" aria-hidden="true"></span><p id="status" data-orbit-status role="status" aria-live="polite" data-en="Observatory ready. Choose a moment of order.">观测站就绪，等待一段有序的时间。</p><span class="demo-badge" data-en="DEMO · SAMPLE DATA">演示 · 示例数据</span><span class="station-id">ORBIT / III</span></footer>
+  </main>
+
+  <aside id="operation-detail" class="operation-detail" aria-live="polite" hidden><span class="section-label" id="detail-heading">即将执行</span><p id="detail-message"></p><p id="detail-list"></p></aside>
+  <script src="../../sdk/orbit.js"></script>
+  <script src="scene.js"></script>
+</body>
+</html>

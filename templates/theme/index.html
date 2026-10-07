@@ -1,47 +1,29 @@
 <!doctype html>
 <html lang="zh-CN" translate="no">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="google" content="notranslate">
-<title>My theme</title>
-<!-- Fonts bundled with: orbit.py fonts <id> --family "…" (uncomment once assets/fonts/fonts.css exists) -->
-<!-- <link rel="stylesheet" href="assets/fonts/fonts.css"> -->
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google" content="notranslate">
+  <title>Desktop</title>
+  <!-- Add licensed artwork and bundled fonts when the chosen design needs them. -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- The scene: anything that moves or is painted. Keep it behind the controls. -->
-<canvas id="scene" aria-hidden="true"></canvas>
-
-<!-- Information the world shows. Bindings fill these in; rename and restyle them freely. -->
-<header class="info">
-  <p class="clock" data-orbit-clock="{HH}:{mm}"></p>
-  <p class="date" data-orbit-clock="{month}{D}日 {weekday}" data-en-clock="{wd}, {mon} {D}"></p>
-  <p class="weather"><span data-orbit-weather="condition"></span> <span data-orbit-weather="temperature"></span></p>
-</header>
-
-<!-- Functions, named in the world's own words. Every op needs a designed running/done/unavailable state. -->
-<nav class="controls" aria-label="Functions">
-  <button class="control" data-orbit-action="tidy-files" data-orbit-op="run">
-    <span class="control-name" data-en="Tidy">收纳</span>
-    <span class="control-note"><b data-orbit-value="tidy-files.pending"></b> <span data-en="loose files">个散落文件</span></span>
-  </button>
-  <button class="control minor" data-orbit-action="tidy-files" data-orbit-op="undo">
-    <span class="control-name" data-en="Undo">撤销</span>
-  </button>
-  <button class="control" data-orbit-action="quit-apps" data-orbit-op="run">
-    <span class="control-name" data-en="Wind down">收工</span>
-    <span class="control-note"><b data-orbit-value="quit-apps.open"></b> <span data-en="apps open">个应用开着</span></span>
-  </button>
-  <button class="control minor" data-orbit-action="quit-apps" data-orbit-op="reopen">
-    <span class="control-name" data-en="Reopen">重新打开</span>
-  </button>
-</nav>
-
-<!-- The latest message from any function. -->
-<p class="status" data-orbit-status></p>
-
-<script src="../../sdk/orbit.js"></script>
-<script src="scene.js"></script>
+  <!-- Replace this static layer with the requested art/media; a canvas loop is optional. -->
+  <div class="scene" aria-hidden="true"></div>
+  <main class="workspace">
+    <!-- These bindings are examples; choose data and placement from the user's brief. -->
+    <header class="info">
+      <p class="clock" data-orbit-clock="{HH}:{mm}"></p>
+      <p class="date" data-orbit-clock="{month}{D}日 {weekday}" data-en-clock="{wd}, {mon} {D}"></p>
+      <p class="weather"><span data-orbit-weather="condition"></span> <span data-orbit-weather="temperature"></span></p>
+    </header>
+    <!-- Add only requested controls, using data-orbit-action/op/params and matching uses.actions. -->
+    <nav class="controls" aria-label="桌面功能" data-en-label="Desktop functions"></nav>
+    <p class="status" data-orbit-status role="status" aria-live="polite"></p>
+    <p class="demo-note" data-en="Preview · sample data">预览 · 示例数据</p>
+  </main>
+  <script src="../../sdk/orbit.js"></script>
+  <script src="scene.js"></script>
 </body>
 </html>

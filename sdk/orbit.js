@@ -689,7 +689,7 @@
 
   function writeReview(errors) {
     var vw = global.innerWidth, vh = global.innerHeight;
-    var report = { viewport: [vw, vh], platform: platform, errors: errors.slice(0, 30), fonts: [], families: {}, text: [],
+    var report = { viewport: [vw, vh], state: root.getAttribute('data-review-state'), platform: platform, errors: errors.slice(0, 30), fonts: [], families: {}, text: [],
       overlaps: [], zones: [], offscreen: [], network: [], translate: root.getAttribute('translate') === 'no' };
     if (doc.fonts && doc.fonts.forEach) {
       doc.fonts.forEach(function (f) { report.fonts.push({ family: f.family.replace(/["']/g, ''), weight: f.weight, style: f.style, status: f.status }); });

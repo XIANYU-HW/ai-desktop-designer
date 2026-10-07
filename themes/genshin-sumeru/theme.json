@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "id": "genshin-sumeru",
+  "name": {
+    "zh-CN": "须弥 · 知识之庭",
+    "en": "Sumeru · Garden of Knowledge"
+  },
+  "description": {
+    "zh-CN": "在树城、飞瀑与金色花窗间阅读时间，归档秘典，触发草、水、雷的元素共鸣。",
+    "en": "A lush tree-city, gilded botanical tracery, living water and a garden of elemental resonance."
+  },
+  "author": "Orbit Desktop",
+  "version": "1.0.0",
+  "language": "zh-CN",
+  "entry": "index.html",
+  "palette": {
+    "background": "#071c18",
+    "surface": "#103e31",
+    "text": "#f3edd5",
+    "muted": "#c7cfb5",
+    "accent": "#b0d67f",
+    "gold": "#d3b46c"
+  },
+  "concept": {
+    "world": "An original Sumeru-inspired garden of knowledge: monumental tree-city, cascading water, gilded leaves and illuminated manuscripts.",
+    "mood": "Luminous, elaborate and botanical, with quiet reading spaces preserved around the scene.",
+    "type": "Locally bundled Chinese serif typography, warm gold chapter labels and stable serif clock numerals.",
+    "motion": "Layered pollen, leaf shadows and water glints at 24 fps. Up to three bounded reaction bursts. Hidden and reduced-motion modes are still.",
+    "metaphors": {
+      "tidy-files": "Secret codices are archived; the subtitle explains actual file movement.",
+      "open-path": "A manuscript index opens Documents.",
+      "quit-apps": "A journey rests by asking eligible applications to quit normally.",
+      "resonance": "Water with the garden's grass blooms; lightning with grass traces quickening veins. This is an artistic interpretation, not game combat simulation."
+    }
+  },
+  "requirements": [
+    {
+      "id": "scene",
+      "request": "Lavish botanical Sumeru scene distinct from Three Body",
+      "implementation": "Original background artwork, gold SVG tracery, manuscript controls and elemental petals",
+      "verification": "Rendered image review"
+    },
+    {
+      "id": "tools",
+      "request": "Clock, weather, archive, folder entry and app wind-down",
+      "implementation": "SDK data bindings and explicit built-in action controls with actual-purpose subtitles",
+      "verification": "Demo action transitions; actual OS actions require separate authorized use"
+    },
+    {
+      "id": "resonance",
+      "request": "Grass, water and lightning reactions",
+      "implementation": "Interactive garden seal, three element choices, layered blooms and branching light veins",
+      "verification": "Browser click, repeated activation and fixture checks"
+    },
+    {
+      "id": "resources",
+      "request": "Bounded low-cost motion",
+      "implementation": "24 fps, DPR at most 1.5, 1400px longest canvas side, 3 reaction slots, hidden/reduced-motion still mode",
+      "verification": "Runtime state and browser interaction checks; machine energy use unmeasured"
+    },
+    {
+      "id": "notes",
+      "request": "A genuine local extra distinct from Three Body",
+      "implementation": "A botanical note seal with Chinese text, local automatic saving, close/reopen recovery and explicit clear",
+      "verification": "Browser typing, blur, close and reload tests"
+    }
+  ],
+  "uses": {
+    "actions": [
+      "tidy-files",
+      "open-path",
+      "quit-apps"
+    ],
+    "data": [
+      "clock",
+      "weather"
+    ]
+  },
+  "performance": {
+    "fps": 24,
+    "max_dpr": 1.5,
+    "max_canvas_side": 1400,
+    "max_reactions": 3
+  },
+  "review": {
+    "states": {
+      "bloom": "review-state=bloom",
+      "quicken": "review-state=quicken",
+      "armed": "review-state=armed",
+      "running": "review-state=running",
+      "done": "review-state=done",
+      "error": "review-state=error",
+      "empty": "review-state=empty",
+      "offline": "review-state=offline",
+      "partial": "review-state=partial",
+      "canceled": "review-state=canceled",
+      "recovery": "review-state=recovery",
+      "typing": "review-state=typing"
+    }
+  }
+}

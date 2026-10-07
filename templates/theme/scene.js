@@ -1,62 +1,36 @@
-/* The scene and the glue between functions and the world. */
+/* Static starter: choose the scene and requested functions before adding motion. */
 (function () {
   'use strict';
+  var root = document.documentElement;
   var zh = Orbit.lang === 'zh';
-  document.documentElement.lang = zh ? 'zh-CN' : 'en';
-  if (!zh) {   // markup is written in Chinese; swap in English where data-en is given
+  root.lang = zh ? 'zh-CN' : 'en';
+  if (!zh) {
     document.querySelectorAll('[data-en]').forEach(function (el) { el.textContent = el.getAttribute('data-en'); });
     document.querySelectorAll('[data-en-clock]').forEach(function (el) { el.setAttribute('data-orbit-clock', el.getAttribute('data-en-clock')); });
+    document.querySelectorAll('[data-en-label]').forEach(function (el) { el.setAttribute('aria-label', el.getAttribute('data-en-label')); });
   }
 
-  var canvas = document.getElementById('scene');
-  var ctx = canvas.getContext('2d');
-  var W = 0, H = 0, DPR = 1;
-  var backdrop = null;      // static layers painted once
-  var effects = [];         // short-lived things spawned by events
-
-  function resize() {
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth || screen.width || 1280;    // hosts can report 0 while starting
-    H = window.innerHeight || screen.height || 720;
-    canvas.width = Math.round(W * DPR);
-    canvas.height = Math.round(H * DPR);
-    paintBackdrop();
-  }
-
-  function paintBackdrop() {
-    backdrop = document.createElement('canvas');
-    backdrop.width = canvas.width; backdrop.height = canvas.height;
-    var b = backdrop.getContext('2d');
-    b.scale(DPR, DPR);
-    var g = b.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#16181d'); g.addColorStop(1, '#0c0d10');
-    b.fillStyle = g; b.fillRect(0, 0, W, H);
-    // paint the world's static layers here
-  }
-
-  // Real events become the world's motion.
-  Orbit.on('action', function (e) {
-    if (e.action === 'tidy-files' && e.phase === 'progress' && e.status === 'moved') {
-      effects.push({ x: Math.random() * W * 0.4, y: Math.random() * H * 0.7, life: 0 });   // one per filed item
+  // Review fixtures affect presentation only. Do not run actions to create a screenshot state.
+  // Add state cases for actual features and list them in theme.json review.states.
+  function applyReviewState() {
+    var state = new URLSearchParams(location.search).get('review-state');
+    if (!Orbit.demo || !state) return;
+    var status = document.querySelector('[data-orbit-status]');
+    if (state === 'empty') {
+      document.querySelectorAll('[data-orbit-weather]').forEach(function (el) {
+        el.textContent = '';
+        el.setAttribute('data-orbit-empty', '');
+      });
+      status.textContent = Orbit.t('暂无天气数据（预览）', 'No weather data (preview)');
+    } else if (state === 'offline') {
+      root.setAttribute('data-orbit-connection', 'offline');
+      status.textContent = Orbit.t('桌面服务离线 · 此处保留示例数据（预览）', 'Desktop service offline · sample data retained (preview)');
+    } else {
+      console.error('Unsupported review-state: ' + state);
+      return;
     }
-    if (e.action === 'quit-apps' && e.phase === 'start' && e.op === 'run') { /* begin winding down */ }
-  });
-  Orbit.on('status', function (e) { /* e.g. keep as many objects as e.data.pending */ });
-  Orbit.on('daypart', paintBackdrop);
-
-  function draw(t, dt) {
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    ctx.drawImage(backdrop, 0, 0, W, H);
-    // slow ambient motion here
-    effects = effects.filter(function (fx) {
-      fx.life += dt;
-      ctx.fillStyle = 'rgba(217,165,91,' + Math.max(0, 1 - fx.life) + ')';
-      ctx.beginPath(); ctx.arc(fx.x, fx.y, 3 + fx.life * 20, 0, Math.PI * 2); ctx.fill();
-      return fx.life < 1;
-    });
+    // The review records this declaration; also inspect the actual image and expected content.
+    root.setAttribute('data-review-state', state);
   }
-
-  window.addEventListener('resize', resize);
-  resize();
-  Orbit.loop(draw, { fps: 60 });   // pauses when the desktop is covered or hidden; 60 fps for continuous motion
+  Orbit.ready.then(applyReviewState);
 })();

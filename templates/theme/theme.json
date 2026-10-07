@@ -1,29 +1,22 @@
 {
   "schema": 1,
   "id": "my-theme",
-  "name": { "zh-CN": "我的主题", "en": "My theme" },
-  "description": { "zh-CN": "一句话描述这个桌面的世界。", "en": "One sentence about this desktop's world." },
+  "name": { "zh-CN": "我的桌面", "en": "My Desktop" },
+  "description": { "zh-CN": "可替换的静态桌面骨架；按需求设计画面、组件和功能。", "en": "A replaceable static desktop skeleton; choose its art, widgets and functions from the brief." },
   "author": "",
   "version": "0.1.0",
   "language": "zh-CN",
   "entry": "index.html",
-  "palette": { "background": "#101114", "surface": "#1A1C21", "text": "#E9E7E1", "muted": "#8D8A84", "accent": "#D9A55B" },
+  "palette": { "background": "#f2f1ed", "surface": "#fcfcf9", "text": "#272a29", "muted": "#555d58", "accent": "#355f54" },
   "concept": {
-    "world": "Describe one concrete world: a place, an era, a craft, an instrument.",
-    "mood": "How it should feel by day and at night.",
-    "type": "The display face and the text face, and why they belong to this world.",
-    "motion": "What moves slowly all the time, and what moves when a function runs.",
-    "metaphors": {
-      "tidy-files.run": "What filing loose desktop files looks like in this world",
-      "tidy-files.undo": "And putting them back",
-      "tidy-files.pending": "What a loose file is in this world",
-      "quit-apps.run": "What winding down the day looks like",
-      "quit-apps.reopen": "And waking it up again",
-      "clock": "How this world tells time",
-      "weather": "How this world shows the weather",
-      "system.battery": "What the battery is in this world"
-    }
+    "world": "An adaptable desktop surface; replace this direction with the user's brief.",
+    "mood": "Quiet and legible.",
+    "type": "Deliberate system typography and stable clock numerals.",
+    "motion": "Static by default. Add ambient or event motion only when the chosen design calls for it.",
+    "metaphors": {}
   },
-  "uses": { "actions": ["tidy-files", "quit-apps"], "data": ["clock", "weather", "system"] },
-  "performance": { "fps": 60 }
+  "requirements": [],
+  "uses": { "actions": [], "data": ["clock", "weather"] },
+  "performance": { "mode": "static", "fps": 0 },
+  "review": { "states": { "empty": "review-state=empty", "offline": "review-state=offline" } }
 }

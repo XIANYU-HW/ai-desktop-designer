@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN" translate="no" data-element="dendro">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="google" content="notranslate"><title>须弥 · 知识之庭</title>
+  <link rel="stylesheet" href="assets/fonts/fonts.css"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="leaf" viewBox="0 0 64 64"><path d="M32 5C20 14 7 28 15 43c4 8 13 13 17 16 4-3 13-8 17-16C57 28 44 14 32 5Z"/><path d="M32 15v37m0-15L20 28m12 15 12-14M32 24l7-7"/></symbol>
+    <symbol id="drop" viewBox="0 0 64 64"><path d="M32 5C26 18 12 30 12 42a20 20 0 0 0 40 0C52 30 38 18 32 5Z"/><path d="M24 33c-8 12-4 20 7 23m9-26c5 9 8 16 1 22"/></symbol>
+    <symbol id="bolt" viewBox="0 0 64 64"><path d="M36 5 13 35h17L24 59l27-34H33Z"/><path d="m14 13 8 2m24 35 5 3M6 45l8-3"/></symbol>
+    <symbol id="book" viewBox="0 0 64 64"><path d="M31 17C20 9 12 9 5 11v39c8-2 16 0 26 7V17Zm2 0c11-8 19-8 26-6v39c-8-2-16 0-26 7V17Z"/><path d="m12 22 12 4m-12 6 12 4m16-10 12-4m-12 14 12-4M32 10V5"/></symbol>
+    <symbol id="folder" viewBox="0 0 64 64"><path d="M7 17h19l5 6h26v29H7V17Zm0 10h50M14 37h22m-22 7h14"/></symbol>
+    <symbol id="moon" viewBox="0 0 64 64"><path d="M44 9C15 4 3 31 18 49c13 15 35 8 39-6C30 48 21 23 44 9Z"/><path d="m49 16 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></symbol>
+    <symbol id="lotus" viewBox="0 0 100 100"><path d="M50 10C26 32 31 55 50 68c19-13 24-36 0-58Z"/><path d="M17 26c-3 31 10 45 33 42-1-25-13-37-33-42Zm66 0c3 31-10 45-33 42 1-25 13-37 33-42ZM6 53c10 27 27 31 44 15C28 57 21 49 6 53Zm88 0C84 80 67 84 50 68c22-11 29-19 44-15Z"/><path d="M50 68v20m-18-1h36M50 22v36"/></symbol>
+  </defs></svg>
+  <div class="art" aria-hidden="true"></div><div class="reading-shade" aria-hidden="true"></div>
+  <div class="element-wash" aria-hidden="true"></div><div class="leaf-shadow" aria-hidden="true"></div>
+  <svg class="garden-frame" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M39 184V85q0-45 45-45h111M1405 40h110q45 0 45 45v99M39 816v99q0 45 45 45h111m1210 0h110q45 0 45-45v-99"/>
+    <path d="M52 141V95q0-43 43-43h46m1318 0h46q43 0 43 43v46M52 859v46q0 43 43 43h46m1318 0h46q43 0 43-43v-46"/>
+    <path d="M42 131c55-5 77-39 83-83-43 5-77 31-83 83Zm151-88c-6 25-25 41-56 44 4-26 21-41 56-44Zm-150 150c24-7 39-24 43-56-24 4-38 21-43 56M1558 131c-55-5-77-39-83-83 43 5 77 31 83 83Zm-151-88c6 25 25 41 56 44-4-26-21-41-56-44Z"/>
+    <path d="m800 27 9 13-9 13-9-13 9-13Zm0 920 9 13-9 13-9-13 9-13ZM165 40h140m990 0h140M165 960h140m990 0h140"/>
+  </svg>
+  <canvas id="living-garden" aria-hidden="true"></canvas>
+
+  <aside class="manuscript" aria-label="桌面信息与工具" data-en-label="Desktop information and tools">
+    <header class="chapter">
+      <div class="chapter-label"><span class="gold-diamond"></span><span data-en="A GARDEN OF KNOWLEDGE">林间秘境 · 知识之庭</span></div>
+      <h1><span data-en="Sumeru">须弥</span><small data-en="WHERE KNOWLEDGE BLOOMS">万千智慧，于此生长</small></h1>
+      <div class="flourish" aria-hidden="true"><span></span><svg viewBox="0 0 100 100"><use href="#lotus"/></svg><span></span></div>
+      <div class="time-row"><span class="clock" data-orbit-clock="{HH}:{mm}"></span><div class="date"><span data-orbit-clock="{M}月{D}日" data-en-clock="{mon} {D}"></span><span data-orbit-clock="{cn-weekday}" data-en-clock="{weekday}"></span></div></div>
+      <div class="weather"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#leaf"/></svg><strong data-orbit-weather="temperature">—</strong><span><span data-orbit-weather="condition"></span><small id="weather-caption" data-en="Weather awaits a city">尚未设置天气城市</small></span></div>
+    </header>
+
+    <nav class="codices" aria-label="桌面工具" data-en-label="Desktop tools">
+      <section class="codex" id="archive-codex"><svg class="tool-icon" viewBox="0 0 64 64" aria-hidden="true"><use href="#book"/></svg><div class="tool-copy"><h2 data-en="Secret archive">秘典归档</h2><p data-en="Tidy loose desktop files">整理桌面散落文件</p><div class="tool-links"><button data-orbit-action="tidy-files" data-orbit-op="preview" data-en="Preview">预览范围</button><button data-orbit-action="tidy-files" data-orbit-op="undo" data-orbit-confirm="always" data-en="Undo">撤销归档</button></div></div><button class="seal-button" data-orbit-action="tidy-files" data-orbit-op="run" data-orbit-confirm="always" aria-label="归档桌面散落文件" data-en-label="Archive loose desktop files"><span data-en="File">归档</span></button></section>
+      <section class="codex"><svg class="tool-icon" viewBox="0 0 64 64" aria-hidden="true"><use href="#folder"/></svg><div class="tool-copy"><h2 data-en="Manuscripts">卷宗入口</h2><p data-en="Open your Documents folder">打开本机文稿文件夹</p></div><button class="seal-button" data-orbit-action="open-path" data-orbit-params='{"path":"{documents}","create":false}' aria-label="打开文稿文件夹" data-en-label="Open Documents"><span data-en="Open">展开</span></button></section>
+      <section class="codex"><svg class="tool-icon" viewBox="0 0 64 64" aria-hidden="true"><use href="#moon"/></svg><div class="tool-copy"><h2 data-en="Journey's rest">旅途暂歇</h2><p data-en="Ask eligible apps to quit normally">正常退出可关闭的应用</p><div class="tool-links"><button data-orbit-action="quit-apps" data-orbit-op="preview" data-en="Preview">预览范围</button><button data-orbit-action="quit-apps" data-orbit-op="reopen" data-orbit-confirm="always" data-en="Reopen">重新打开</button></div></div><button class="seal-button" data-orbit-action="quit-apps" data-orbit-op="run" data-orbit-confirm="always" aria-label="正常退出可关闭的应用" data-en-label="Ask eligible apps to quit"><span data-en="Rest">暂歇</span></button></section>
+    </nav>
+    <div class="action-ledger"><span class="ledger-mark" aria-hidden="true">◇</span><p data-orbit-status id="action-status" role="status" aria-live="polite" data-en="Choose a codex to begin.">选择一册秘典，开始今日旅程。</p><progress id="action-progress" max="1" value="0" hidden></progress><button id="cancel-action" type="button" hidden data-en="Cancel">取消</button></div>
+  </aside>
+
+  <div class="note-sanctum">
+    <button class="note-seal" id="note-toggle" type="button" aria-expanded="false" aria-controls="note-panel"><svg class="note-ornament" viewBox="0 0 180 160" aria-hidden="true"><path d="M90 7 107 26q55 1 58 52-2 53-58 57l-17 18-17-18Q16 132 15 80q2-53 58-54L90 7Z"/><path d="M90 18 101 35q47 0 53 44-4 45-53 47l-11 15-11-15q-48-3-52-47 5-44 52-44Z"/></svg><svg class="note-leaf" viewBox="0 0 64 64" aria-hidden="true"><use href="#leaf"/></svg><strong data-en="Leaf notes">林间便笺</strong><small id="note-count" data-en="Keep a thought">留一行灵感</small></button>
+    <section id="note-panel" class="note-panel" hidden aria-label="本地便笺" data-en-label="Local notes"><div class="note-title"><h2 data-en="A thought among leaves">把灵感留在叶间</h2><button id="note-close" type="button" aria-label="关闭便笺" data-en-label="Close notes">×</button></div><label class="sr-only" for="note-text" data-en="Note text">便笺内容</label><textarea id="note-text" maxlength="1000" placeholder="记录此刻想到的事…" data-en-placeholder="Keep the thought that just arrived…" spellcheck="false"></textarea><div class="note-bottom"><span id="note-saved" role="status" data-en="Stored in this browser only">仅保存在此浏览器</span><button id="note-clear" type="button" data-en="Clear">清空</button></div></section>
+  </div>
+
+  <button class="resonance-point" id="resonance-point" type="button" aria-label="在场景中触发元素共鸣" data-en-label="Trigger elemental resonance in the scene"><span class="seal-orbit outer"></span><span class="seal-orbit inner"></span><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#lotus"/></svg><span class="resonance-hint" data-en="TOUCH THE GARDEN">轻触 · 唤醒生机</span></button>
+  <section class="elementarium" aria-label="元素共鸣" data-en-label="Elemental resonance">
+    <div class="element-heading"><span></span><h2 data-en="ELEMENTAL RESONANCE">元素共鸣</h2><span></span></div>
+    <div class="elements" role="group" aria-label="选择元素" data-en-label="Choose an element">
+      <button class="element active" data-element="dendro" type="button" aria-pressed="true"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#leaf"/></svg><span data-en="Dendro">草</span><small data-en="Awaken">新生</small></button>
+      <button class="element" data-element="hydro" type="button" aria-pressed="false"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#drop"/></svg><span data-en="Hydro">水</span><small data-en="Bloom">绽放</small></button>
+      <button class="element" data-element="electro" type="button" aria-pressed="false"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#bolt"/></svg><span data-en="Electro">雷</span><small data-en="Quicken">激化</small></button>
+    </div>
+    <p id="resonance-status" role="status" aria-live="polite" data-en="Dendro awakens the garden. Touch the seal above.">草木静候回应。轻触上方花印，唤醒庭院。</p>
+  </section>
+  <footer><span id="mode-caption" data-en="LOCAL DESKTOP">本机桌面</span><span class="motion-note" id="motion-note"></span><span data-en="An artistic Genshin-inspired interpretation · not game combat values">原神灵感转译 · 非游戏战斗数值模拟</span></footer>
+  <script src="../../sdk/orbit.js"></script><script src="scene.js"></script>
+</body></html>

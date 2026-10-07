@@ -56,7 +56,7 @@ def find_free_port(start: int = DEFAULT_PORT, attempts: int = 60) -> int:
 
 
 def default_theme(language: str) -> str:
-    return "ink-study" if str(language).startswith("zh") else "deep-orbit"
+    return "threebody-observatory"
 
 
 class Workspace:

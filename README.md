@@ -1,162 +1,197 @@
 # Orbit Desktop
-
-**让桌面成为一个完整的设计：壁纸、动效、小组件和一键功能属于同一个世界。**
-A desktop where wallpaper, motion, widgets and one-click functions belong to one designed world.
+### 把你想象的世界，做成每天使用的桌面。
+**Turn a world you love into a desktop you can live in.**
 
 [![CI](https://github.com/XIANYU-HW/orbit-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/XIANYU-HW/orbit-desktop/actions/workflows/ci.yml)
-[在线演示 Live demo](https://xianyu-hw.github.io/orbit-desktop/) · [中文](#中文) · [English](#english)
+[**进入主题展厅 →**](https://xianyu-hw.github.io/orbit-desktop/) · [三体试玩](https://xianyu-hw.github.io/orbit-desktop/themes/threebody-observatory/?demo=1&lang=zh-CN) · [原神试玩](https://xianyu-hw.github.io/orbit-desktop/themes/genshin-sumeru/?demo=1&lang=zh-CN) · [使用方法](#开始使用) · [English](#english)
 
-![墨痕书房 · Ink Study](themes/ink-study/preview.png)
+早晨，在须弥的树荫下记一行灵感。深夜，在三日凌空的观测站，归档最后一份文件。
 
-| 深空轨道 · Deep Orbit | 磁盘整理 95 · Defrag 95 |
-|---|---|
-| ![Deep Orbit](themes/deep-orbit/preview.png) | ![Defrag 95](themes/defrag-95/preview.png) |
+移动鼠标，星图回应你的观测；轻触庭院，元素在花叶间绽放。那些每天都会用到的时钟、便笺、计时器与文件入口，也都有了属于这个世界的位置。
+
+**你给出想象，AI 把它写成可以生活、可以工作的桌面。**
+
+Orbit Desktop 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计 Skill**，附带可独立运行的主题引擎与本机工具。从主题内核出发，把画面、运动、交互和日常功能一起设计出来。
 
 ---
 
-## 中文
+## 01 / 三体 · 文明观测站
+### 在不可预测的世界，留下秩序。
 
-### 这是什么
+[![三体主题实际运行截图：青铜观测环、三日轨迹与文明工具](themes/threebody-observatory/preview.png)](https://xianyu-hw.github.io/orbit-desktop/themes/threebody-observatory/?demo=1&lang=zh-CN)
 
-市面上的 AI 壁纸工具大多只换图案。Orbit Desktop 是一个 **Skill**（Claude Code、Codex 等 AI 编程助手都能用），也是一套能独立运行的小工具。它让 AI 帮你设计整个桌面：
+荒原、青铜观测环、深空中的三颗恒星。这里的主题来自“三体”中的**不可预测、观测与文明延续**：你能改变观测状态，也能为自己的工作留下一段确定的时间。
 
-- **图案、风格、动效、动画**：主题就是一张网页，画面、排版、动态完全自由。
-- **桌面功能**：一键收纳桌面文件（可撤销）、一键收工关闭应用（绝不强制关闭）、打开文件夹……也可以让 AI 写一个你想要的新功能。
-- **功能和美学融为一体**：同一个“收纳”，在水墨主题里是散页飞入书卷的“收卷”，在太空主题里是把碎片捕获进档案轨道，在 95 主题里就是磁盘碎片整理。桌面上有几个散落文件，太空里就漂着几块碎片；开着几个应用，轨道上就亮着几颗卫星；电量是书房里的“灯油”。
+| 你做的事 | 世界的回应 |
+|---|---|
+| 切换恒纪元与乱纪元 | 三日的轨迹、间距与观测状态随之变化 |
+| 移动指针、点击星图区 | 观测标记与局部扰动回应你的介入 |
+| 开始一段专注 | 25 分钟倒计时，把注意力留在一项工作上 |
+| 归档文件、打开资料、结束工作 | 通过「文明归档」「文明资料库」「静默值守」完成；保留清楚的功能说明 |
 
-支持 **Windows 10/11** 和 **macOS**（Linux 可以预览）。
+[**进入观测站 →**](https://xianyu-hw.github.io/orbit-desktop/themes/threebody-observatory/?demo=1&lang=zh-CN)
 
-### 三套示例主题
+*这是文学主题的视觉演绎，轨迹是有界的概念动画，并非天体预报或科学模拟。*
 
-| 主题 | 世界 | 一键收纳 | 一键收工 | 数据 |
-|---|---|---|---|---|
-| 墨痕书房 | 雾中远山的书房，竖排楷体 | 「收卷」：文件化作纸笺飞入书卷，可「展卷」撤销 | 「掩灯」：先点亮灯光确认，墨色渐沉 | 时辰、中文数字日期、灯油=电量、雨天落墨 |
-| 深空轨道 | 行星轨道上的任务控制台 | 「收拢碎片」：碎片被捕获进档案轨道 | 「静默航行」：卫星一颗颗熄灭 | 散落文件=碎片数，应用=卫星数，CPU=反应堆 |
-| 磁盘整理 95 | 1995 年的 Windows | 就是磁盘碎片整理：读、写、蓝色归位 | “关闭程序”对话框，列出真实运行的程序 | “资源状况”窗口、托盘时钟 |
+## 02 / 原神 · 须弥知识之庭
+### 让知识生长，让日常融入风景。
 
-同一套主题会跟着真实的时间和天气变化，比如夜里下雨的墨痕书房：
+[![须弥主题实际运行截图：树城、瀑布、金色植物纹样与庭院工具](themes/genshin-sumeru/preview.png)](https://xianyu-hw.github.io/orbit-desktop/themes/genshin-sumeru/?demo=1&lang=zh-CN)
 
-![夜雨中的墨痕书房](docs/ink-study-night-rain.png)
+树城与瀑布向远处展开，时间栖在林荫里，工具化作庭院中的卷宗。**知识、自然与元素之间的联系**决定了这套主题的形态：它更繁复、更明亮，功能分散在适合它们的位置。
 
-### 快速体验（不需要 AI）
+| 你做的事 | 世界的回应 |
+|---|---|
+| 选择草、水或雷，再触碰庭院 | 花印、绽放与枝脉光效形成不同的元素回应 |
+| 暂时放下鼠标 | 水光与流叶保持轻微运动，场景仍然有生命 |
+| 打开「林间便笺」 | 记下想法，便笺保存在当前浏览器本地 |
+| 使用「秘典归档」「卷宗入口」「旅途暂歇」 | 同样的日常工具，重新设计为植物纹样与卷宗式控件 |
 
-**Windows**：下载本仓库（Code → Download ZIP，解压），双击 `start-windows.bat`。没有 Python 会提示一键安装。菜单里可以全屏预览、换主题、设为桌面壁纸、设置天气城市。
+[**漫步知识之庭 →**](https://xianyu-hw.github.io/orbit-desktop/themes/genshin-sumeru/?demo=1&lang=zh-CN)
 
-**macOS**：双击 `start-mac.command`（第一次需要右键 → 打开）。
+*原创同人场景与元素互动，不是游戏截图，也不复现游戏数值规则。两套主题均无官方关联或背书。[素材与创作说明](docs/showcase-art.md)*
 
-设为壁纸时，Windows 使用免费开源的 [Lively Wallpaper](https://www.rocksdanister.com/lively/)，macOS 使用免费的 [Plash](https://apps.apple.com/app/plash/id1494023538)。程序会一步步告诉你怎么做，随时可以 `uninstall` 恢复原样。
+> **在线试玩说明：** 文件、应用和天气使用示例数据；系统操作按钮只演示反馈，不访问你的文件、不退出应用。计时与便笺可在浏览器中使用，便笺只存于该浏览器本地。截图来自实际运行的主题页面。
 
-### 作为 Skill 使用（让 AI 设计你的桌面）
+---
 
-把仓库放进 AI 助手的 skills 目录，文件夹名保持 `orbit-desktop`：
+## 起点，是一次桌面大扫除。
+
+先想把散落的文件整理好。接着，希望整理是一枚融入画面的按钮，天气和时钟像是风景的一部分。再后来，希望河流会流动、星空会回应鼠标，换一个主题时，整套桌面也能换一种性格。
+
+一次次迭代留下了一套方法：**理解主题，设计整个场景，让功能落地，亲手测试，再把旧主题妥善保留。** Orbit Desktop 把这套方法写进 Skill，交给 AI，也交给下一个有想法的人。
+
+## 这个 Skill 教 AI 做什么？
+
+**从“喜欢什么”走到“如何在其中工作”。**
+
+1. **拆解主题内核** — 从世界观、情绪、材料、构图和行为中找到关联。文学、游戏、摄影、静态排版与实用工作台都可以。
+2. **设计整个桌面** — 背景、信息、按钮、输入、反馈和动效一起设计。控件可以集中，也可以融入不同位置；必需功能始终保留。
+3. **实现真实功能** — 复用收纳、打开目录、收工；也可以编写计时、便笺、媒体控制或新的工作流。功能范围由需求决定。
+4. **看实际效果，再修正** — 截图检查清晰度与排版，真实点击测试状态变化，在临时数据上验证文件操作，并分别记录目标桌面宿主的结果。
+5. **保留旧世界** — 新主题有独立目录，现有配置和用户数据保留；安装、启动项与发布遵循用户授权。
+
+两套主展示是完成度示例，不是固定模板。你可以让 AI 换一种完全不同的构图、材料、功能与运动方式。
+
+### 给 AI 的一句话
+
+> 用 orbit-desktop 做一个深海研究站桌面。主题围绕“探索与记录”，要有待办、资料入口和专注计时。声呐扫过时能与鼠标互动；整体安静，保留我的旧主题，先在浏览器给我看实际效果。
+
+也可以只改一个细节：
+
+> 保留现在的构图，让河流沿实际河道流动；减少全屏装饰，把整理文件的反馈融入场景。
+
+## 开始使用
+
+### 先试玩
+
+[打开在线展厅](https://xianyu-hw.github.io/orbit-desktop/)。无需下载，无需桌面权限；建议使用电脑浏览器体验交互。
+
+### 让 AI 为你设计
+
+把仓库放入对应助手的 Skills 目录，再向助手描述需求：
+
+```bash
+# Codex — macOS / Linux
+git clone https://github.com/XIANYU-HW/orbit-desktop ~/.agents/skills/orbit-desktop
+
+# Claude Code — macOS / Linux
+git clone https://github.com/XIANYU-HW/orbit-desktop ~/.claude/skills/orbit-desktop
+```
 
 ```powershell
-# Claude Code（Windows PowerShell）
+# Windows PowerShell — Codex
+git clone https://github.com/XIANYU-HW/orbit-desktop "$env:USERPROFILE\.agents\skills\orbit-desktop"
+
+# Windows PowerShell — Claude Code
 git clone https://github.com/XIANYU-HW/orbit-desktop "$env:USERPROFILE\.claude\skills\orbit-desktop"
 ```
-```bash
-# Claude Code（macOS / Linux）
-git clone https://github.com/XIANYU-HW/orbit-desktop ~/.claude/skills/orbit-desktop
-# Codex
-git clone https://github.com/XIANYU-HW/orbit-desktop ~/.agents/skills/orbit-desktop
+
+入口是 [SKILL.md](SKILL.md)。AI 会按需求、设计、实现、画面与交互验收、授权安装的流程工作。
+
+### 直接运行示例
+
+[下载 ZIP](https://github.com/XIANYU-HW/orbit-desktop/archive/refs/heads/main.zip) 并解压：
+
+| 系统 | 启动 | 桌面宿主 |
+|---|---|---|
+| Windows 10/11 | 双击 `start-windows.bat` | [Lively Wallpaper](https://www.rocksdanister.com/lively/) |
+| macOS | 双击 `start-mac.command`，首次可右键打开 | [Plash](https://apps.apple.com/app/plash/id1494023538) |
+| Linux | 使用 Python 命令启动与浏览器预览 | 不提供原生桌面集成 |
+
+本机助手使用 **Python 3.9+ 标准库**。首次创建工作区默认选中三体主题；已有主题选择保留。启动菜单可预览、切换主题、设置天气位置，再按需设为桌面。开机启动须主动选择。
+
+## 实现与使用边界
+
+| 能力 | 当前实现 |
+|---|---|
+| 视觉与交互 | HTML/CSS/Canvas/SVG 和本地素材；展示主题限制动画帧率与画布倍率，响应暂停、隐藏和减少动态效果设置。实际占用取决于设备与宿主。 |
+| 整理文件 | 提供操作预览；两套主展示的整理与收工会先显示确认。整理只移动并记日志，不删除；撤销核对文件身份与内容，变化或状态不明的文件保留待处理。 |
+| 一键收工 | 先列应用，再正常请求退出；不强退、不代答保存提示。网页标签与会话恢复取决于应用自身。 |
+| AI 输入与模型选择 | **没有通用内置桥接。** 按所选应用的真实接口另行实现，区分打开草稿、发送成功与收到回答。 |
+| 桌面输入 | 浏览器、Plash 与 Lively 能力不同；复杂输入、输入法、窗口层级需在实际宿主验证。 |
+| 验证 | 自动检查、浏览器截图、实际交互和桌面宿主测试分别记录；CI 不能替代审美或目标设备验收。 |
+
+本机助手只监听 `127.0.0.1`，受保护接口校验口令、Host 与 Origin。主题可调用本机功能，自定义动作可运行代码，因此应先审查来源；这不是代码沙箱。此项目与已有原生 Mac ORBIT 应用独立，不自动替换其桌面与配置。
+
+<details>
+<summary>开发结构、命令与基础示例</summary>
+
+```text
+SKILL.md              AI 的工作流程
+references/           设计、实现、验收与宿主指南
+themes/               两套主展示 + 三套基础示例
+sdk/                  页面 SDK 与主题库
+actions/              tidy-files / quit-apps / open-path
+runtime/              Python 本机助手
+templates/            可替换的新主题与功能骨架
+tests/                跨平台自动测试
 ```
 
-然后直接说：
-
-- “用 orbit-desktop 给我设计一个雨夜图书馆风格的桌面，要有一键收纳和一键收工。”
-- “给我加一个按钮，一键关掉所有浏览器，风格要和现在的主题一致。”
-- “做一个新功能：把桌面上的截图按月份归档。”
-
-AI 会先写出这个桌面的“世界观”和每个功能的隐喻，再写主题、截图检查，最后帮你放到桌面上。
-
-### 它是怎么工作的
-
-```mermaid
-flowchart LR
-  subgraph Desktop["桌面 Desktop"]
-    Host["Lively Wallpaper / Plash<br/>把网页放到桌面"] --> Page["主题网页 Theme page<br/>画面 + 小组件 + 按钮"]
-  end
-  Page -- "点击按钮 · 带口令" --> Helper["本机助手 orbit.py<br/>只监听 127.0.0.1"]
-  Helper -- "进度事件 SSE" --> Page
-  Helper --> Actions["功能 Actions<br/>tidy-files · quit-apps · open-path · 你的新功能"]
-  Actions --> OS["Windows / macOS"]
-  Agent["AI 助手 + SKILL.md"] -. "设计主题、编写功能" .-> Page
-  Agent -. "orbit.py 命令" .-> Helper
+```text
+python runtime/orbit.py doctor | init | start | stop | themes | use ID | gallery
+python runtime/orbit.py new-theme ID [--from THEME] | validate ID | snapshot ID
+python runtime/orbit.py review ID [--quick] [--out FOLDER]
+python runtime/orbit.py actions | run ACTION [OP] [--param KEY=VALUE] [--yes]
+python runtime/orbit.py install [--autostart] | uninstall | autostart on|off
 ```
 
-- **主题**（`themes/`）是普通网页，用 `sdk/orbit.js` 连接功能、时间、天气、系统状态。
-- **功能**（`actions/`）是独立的小程序，有统一的约定：先预览、可撤销、绝不删除、绝不强制关闭。
-- **本机助手**（`runtime/`）只用 Python 标准库，无需安装任何依赖。
+macOS / Linux 可用 `python3`。用户工作区默认 `~/OrbitDesktop`，与仓库分离。卸载停止助手并移除其启动项，桌面宿主中的条目可能仍需手动移除。
 
-### 安全
+基础示例仍保留，适合学习不同实现方式：
 
-- 助手只监听本机地址，每个请求都要口令，并拒绝其他网站发来的请求。你访问的网页无法操作你的桌面。
-- 一键收纳只移动不删除，每一步都有日志，可以撤销；快捷方式、隐藏文件、正在下载或刚改过的文件不会动。
-- 一键收工只发送正常的关闭请求；有未保存内容的应用会停下来问你。终端、AI 工具、密码管理器、同步、VPN/代理、安全软件始终保留。
-- 关闭应用前会先显示将关闭哪些应用，再点一次才执行。
+- [墨痕书房](https://xianyu-hw.github.io/orbit-desktop/themes/ink-study/?demo=1)：纸墨、卷轴、时辰。
+- [深空轨道](https://xianyu-hw.github.io/orbit-desktop/themes/deep-orbit/?demo=1)：数据驱动的轨道与碎片。
+- [磁盘整理 95](https://xianyu-hw.github.io/orbit-desktop/themes/defrag-95/?demo=1)：复古窗口与整理进度。
 
-### 目录
+继续阅读：[设计原则](references/design-principles.md) · [主题指南](references/theme-guide.md) · [验收方法](references/quality-review.md) · [设计案例](references/design-cases.md) · [展示验证](docs/showcase-verification.md)
 
-```
-SKILL.md              AI 读的说明书
-references/           设计方法、主题指南、功能指南、宿主与排错
-runtime/orbit.py      本机助手和命令行
-sdk/orbit.js          主题 SDK；sdk/gallery.html 主题画廊
-actions/              内置功能
-themes/               三套示例主题
-templates/            新主题、新功能的模板
-tests/                自动测试（Windows / macOS / Linux 持续集成）
-```
+</details>
 
 ---
 
 ## English
 
-### What it is
+Keep a thought beneath Sumeru's canopy. File away the day beneath three suns. Move the pointer, and the world responds.
 
-Most AI wallpaper tools stop at the picture. Orbit Desktop is a **skill** for AI coding agents (Claude
-Code, Codex and others following the Agent Skills format) and a small tool that runs on its own. It
-designs the whole desktop:
+**Orbit Desktop is an agent skill for designing a coherent, useful desktop around a world, a mood or a way of working.** It includes a portable web-theme runtime and a local Python helper. Use it with Codex, Claude Code or another compatible coding agent.
 
-- **Picture, style, motion:** a theme is a web page, so anything goes.
-- **Functions:** tidy loose desktop files (undoable), wind down open apps (never force-quit), open
-  folders, or any new function the agent writes for you.
-- **Function and aesthetics fused:** "tidy" is rolling paper slips into a scroll in the ink theme,
-  capturing debris into orbit in the space theme, and literally defragmenting in the Windows 95 theme.
-  Loose files become debris, open apps become satellites, the battery becomes lamp oil.
+### Two worlds, different design languages
 
-Windows 10/11 and macOS (Linux for previews).
+- **Three-body · Civilization Observatory** — Bronze instruments, a desolate horizon and a three-star sky. Switch between stable and chaotic eras, perturb the observation, start a focus session and archive your work. The trajectories are conceptual choreography, not astronomy.
+- **Genshin · Sumeru Garden of Knowledge** — A lush tree city, waterfalls and botanical gold ornament. Dendro, water and electro produce distinct garden responses. Keep a local note and use scroll-like tools woven into the setting. An original unofficial fan interpretation, not an in-game scene.
 
-### Try it without an agent
+[**Explore the live demos →**](https://xianyu-hw.github.io/orbit-desktop/)
+The screenshots show running themes. Public demos simulate file/app operations and weather; the timer and browser-local notes remain usable.
 
-Windows: download the ZIP, unzip, double-click `start-windows.bat`. macOS: double-click
-`start-mac.command`. The menu previews themes, switches them, puts them on the desktop (via the free
-[Lively Wallpaper](https://www.rocksdanister.com/lively/) on Windows or [Plash](https://apps.apple.com/app/plash/id1494023538)
-on macOS) and sets the weather place.
+### What the skill provides
 
-### Use it as a skill
+A requirements-to-delivery workflow: derive the design from the brief, build artwork and useful controls together, test real interactions with temporary data, inspect renders, and verify the authorized installation in its actual host. Preserve existing themes and recoverable user data. Quiet, static, photographic and completely different layouts are equally valid.
 
-Clone into your agent's skills folder as `orbit-desktop` (`~/.claude/skills/` for Claude Code,
-`~/.agents/skills/` for Codex), then ask, for example: *"Use orbit-desktop to design a rainy-library
-desktop with one-click tidy and wind-down."* The agent writes the theme's concept and the metaphor for
-each function first, then builds, snapshots, checks and installs it. See `SKILL.md`.
+Desktop targets: **Windows + Lively** and **macOS + Plash**. Linux supports browser previews. Python 3.9+; standard library only. Clone into `~/.agents/skills/orbit-desktop` for Codex or `~/.claude/skills/orbit-desktop` for Claude Code. Read [SKILL.md](SKILL.md), or download the ZIP and run the platform launcher.
 
-### Commands
+The featured themes confirm filing and wind-down before execution; previews are also available for those actions. Tidy moves and journals files with verified undo; wind-down requests normal app closure and never force-quits or answers save prompts. Session restoration is app-dependent. There is no universal AI chat/model bridge. Browser tests do not certify Plash/Lively input or device performance. The local helper is authenticated, but themes and custom actions are trusted code, not sandboxed extensions.
 
-```
-python runtime/orbit.py doctor | init | start | stop | themes | use ID | gallery | open [ID]
-python runtime/orbit.py new-theme ID [--from THEME] | validate ID | snapshot ID
-python runtime/orbit.py actions | run ACTION [OP] [--params JSON] [--yes] | new-action ID
-python runtime/orbit.py set-location CITY | install | uninstall | autostart on|off
-```
+## License & credits
 
-### Safety
-
-The helper listens on 127.0.0.1 only, requires a per-install token, checks Host and Origin, and sends no
-CORS headers, so web pages cannot trigger your desktop. Tidying only moves and journals files and can be
-undone. Winding down only sends normal close requests and keeps terminals, AI tools, password
-managers, sync, VPN and security software open. Closing apps always asks for a second click.
-
-## License
-
-MIT. Lively Wallpaper and Plash are separate projects by their own authors.
+Code: **MIT**. The two featured worlds are unofficial fan showcases with no affiliation or endorsement. Generated art, thematic references and font licenses are documented in [artwork provenance](docs/showcase-art.md). Third-party names and fictional properties belong to their respective rights holders. Lively and Plash are independent projects.

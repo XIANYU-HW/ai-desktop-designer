@@ -1,0 +1,2 @@
+Noto Serif SC: from Google Fonts; license on https://fonts.google.com/specimen/Noto+Serif+SC/license (most families use the SIL Open Font License 1.1)
+Noto Sans SC: from Google Fonts; license on https://fonts.google.com/specimen/Noto+Sans+SC/license (most families use the SIL Open Font License 1.1)
