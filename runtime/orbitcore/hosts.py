@@ -172,20 +172,34 @@ def snapshot(url: str, out: Path, width: int = 1920, height: int = 1080, wait_ms
         return False, "no Chrome, Edge, Chromium or Brave browser found (set ORBIT_BROWSER to one)"
     out = Path(out).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
+    if out.exists():
+        out.unlink()
     with tempfile.TemporaryDirectory(prefix="orbit-snap-") as profile:
         args = [
             browser, "--headless=new", "--hide-scrollbars", "--mute-audio", "--no-first-run",
-            "--no-default-browser-check", "--disable-extensions", f"--user-data-dir={profile}",
-            f"--window-size={width},{height}", f"--virtual-time-budget={wait_ms}",
-            f"--screenshot={out}", url,
+            "--no-default-browser-check", "--disable-extensions", "--disable-sync",
+            "--disable-background-networking", "--disable-component-update",
+            "--use-mock-keychain",          # macOS: never wait on a keychain prompt
+            "--password-store=basic",       # Linux: same for the desktop keyring
+            f"--user-data-dir={profile}", f"--window-size={width},{height}",
+            f"--virtual-time-budget={wait_ms}", f"--screenshot={out}", url,
         ]
+        kwargs: Dict[str, Any] = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE}
+        if env.IS_WINDOWS:
+            kwargs["creationflags"] = env.CREATE_NO_WINDOW
+        proc = subprocess.Popen(args, **kwargs)
         try:
-            proc = subprocess.run(args, capture_output=True, text=True, timeout=max(60, wait_ms / 1000 * 4))
+            _, err = proc.communicate(timeout=max(60, wait_ms / 1000 * 4))
         except subprocess.TimeoutExpired:
+            # Some browsers write the picture and then fail to exit; keep the picture if it is there.
+            proc.kill()
+            _, err = proc.communicate()
+            if out.exists() and out.stat().st_size > 0:
+                return True, str(out)
             return False, "the browser took too long"
     if out.exists() and out.stat().st_size > 0:
         return True, str(out)
-    return False, (proc.stderr or proc.stdout or "no image produced")[-400:]
+    return False, (err.decode("utf-8", errors="replace") if err else "no image produced")[-400:]
 
 
 # --------------------------------------------------------------------------- Windows: Lively Wallpaper

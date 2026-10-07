@@ -3,7 +3,8 @@
 **让桌面成为一个完整的设计：壁纸、动效、小组件和一键功能属于同一个世界。**
 A desktop where wallpaper, motion, widgets and one-click functions belong to one designed world.
 
-[中文](#中文) · [English](#english)
+[![CI](https://github.com/XIANYU-HW/orbit-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/XIANYU-HW/orbit-desktop/actions/workflows/ci.yml)
+[在线演示 Live demo](https://xianyu-hw.github.io/orbit-desktop/) · [中文](#中文) · [English](#english)
 
 ![墨痕书房 · Ink Study](themes/ink-study/preview.png)
 
