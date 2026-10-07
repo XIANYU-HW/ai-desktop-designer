@@ -9,6 +9,7 @@ from pathlib import Path
 from helpers import ROOT, TempHome
 
 from orbitcore import env, registry, system
+from orbitcore.config import Workspace
 
 ORBIT = [sys.executable, str(ROOT / "runtime" / "orbit.py")]
 
@@ -98,6 +99,29 @@ class CliTest(unittest.TestCase):
             self.assertTrue((h.desktop / "a.pdf").exists())
             done = self.orbit("run", "tidy-files", "run", "--params", params, "--yes", "--json")
             self.assertEqual(json.loads(done.stdout)["data"]["moved"], 1)
+
+    def test_params_survive_any_shell(self):
+        with TempHome() as h:
+            h.file("a.pdf")
+            # repeated key=value, the form the docs recommend
+            out = self.orbit("run", "tidy-files", "preview", "--param", f"source={h.desktop}",
+                             "--param", f"library={h.library}", "--json").stdout
+            self.assertEqual(json.loads(out)["data"]["pending"], 1)
+            # what Windows PowerShell 5.1 passes for '{"source":"..."}': the inner quotes are gone
+            mangled = "{source:%s,library:%s}" % (h.desktop, h.library)
+            out = self.orbit("run", "tidy-files", "preview", "--params", mangled, "--json").stdout
+            self.assertEqual(json.loads(out)["data"]["pending"], 1)
+            bad = self.orbit("run", "tidy-files", "preview", "--param", "nonsense", check=False)
+            self.assertEqual(bad.returncode, 1)
+
+    def test_language_choice_is_remembered(self):
+        with TempHome() as h:
+            fresh = Workspace(h.base / "fresh").ensure()
+            self.assertEqual(fresh["language_source"], "detected")
+            self.assertEqual(fresh["theme_source"], "default")
+            chosen = Workspace(h.base / "chosen").ensure(language="zh-CN")
+            self.assertEqual(chosen["language_source"], "user")
+            self.assertEqual(chosen["active_theme"], "ink-study")
 
     def test_export_and_import_theme(self):
         with TempHome() as h:

@@ -12,7 +12,7 @@ Create one from the template with `orbit.py new-action <id>`, then:
 
 ```
 orbit.py validate-action <id>
-orbit.py run <id> preview                 # read-only operations need no flag
+orbit.py run <id> preview --param folder=downloads   # read-only operations need no flag
 orbit.py run <id> run --yes               # only with the user's explicit OK, on their real machine
 ```
 

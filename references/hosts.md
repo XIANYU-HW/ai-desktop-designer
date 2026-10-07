@@ -17,9 +17,10 @@ pages as the wallpaper, with mouse clicks passed through to the page.
      (`%LOCALAPPDATA%\Lively Wallpaper\Library` unless moved in Lively's settings) that points to the helper address;
    - runs `Lively.exe setwp --file <that folder>` to apply it;
    - adds the helper to `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` so it starts at sign-in.
-3. The Microsoft Store version cannot be driven from the command line. Add it by hand once: open Lively,
-   click **+**, paste `http://127.0.0.1:47321/` into the address box and press Enter. `install` copies the
-   address to the clipboard for this.
+3. The Microsoft Store version cannot be driven from the command line. `install` still puts the Orbit
+   Desktop entry into its library, so the user only has to open Lively and click **Orbit Desktop** there.
+   Do not tell them to add it with **+**: that creates a second entry. Only if the entry is missing after
+   quitting and reopening Lively, click **+** and paste `http://127.0.0.1:47321/` (`install` copies it).
 
 Good to know:
 

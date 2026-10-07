@@ -16,4 +16,6 @@ logged there too.
 | Tidy skipped some files | They are open in another program, were changed in the last 30 s, are shortcuts or hidden files, or folders. `orbit.py run tidy-files preview` lists each reason. |
 | An app did not close | It is showing a "save changes?" dialog (status `waiting`), it runs as administrator (`skipped`), or it is on the protected list. Nothing is ever force-quit. |
 | Windows SmartScreen warns about `start-windows.bat` | Files from a downloaded ZIP carry a web mark. Choose "More info → Run anyway", or clone the repository with git instead. |
+| `--params must be JSON` in Windows PowerShell | PowerShell 5.1 removes the quotes inside JSON arguments. Use `--param key=value` (repeatable) instead, e.g. `--param source=downloads`. |
+| Lively shows Orbit Desktop twice | The Store version was given the address by hand although the entry already existed. Delete one of them in Lively's library. |
 | Snapshot fails | Install Chrome or Edge, or point `ORBIT_BROWSER` to a Chromium-based browser executable. |

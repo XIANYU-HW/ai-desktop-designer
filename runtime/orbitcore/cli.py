@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from . import VERSION, env, hosts, registry
-from .config import Workspace
+from .config import Workspace, default_theme
 from .runner import merge_params, run_action
 from .server import ping, serve
 
@@ -27,6 +27,69 @@ class Out:
 
     def say(self, zh: str, en: str = "") -> None:
         print(self.t(zh, en or zh))
+
+
+def ask(prompt: str) -> Optional[str]:
+    """input() that returns None instead of crashing when the user presses Ctrl+C or closes the input."""
+    try:
+        return input(prompt)
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return None
+
+
+def interactive() -> bool:
+    try:
+        return sys.stdin is not None and sys.stdin.isatty()
+    except (ValueError, OSError):
+        return False
+
+
+def _loose_object(text: str) -> Optional[Dict[str, Any]]:
+    """Read {key:value,...} whose quotes were eaten by the shell (Windows PowerShell does this)."""
+    text = text.strip()
+    if not (text.startswith("{") and text.endswith("}")):
+        return None
+    body = text[1:-1].strip()
+    result: Dict[str, Any] = {}
+    if not body:
+        return result
+    for part in body.split(","):
+        key, sep, value = part.partition(":")
+        key = key.strip().strip("\"'")
+        if not sep or not key:
+            return None
+        value = value.strip().strip("\"'")
+        try:
+            result[key] = json.loads(value)
+        except ValueError:
+            result[key] = value
+    return result
+
+
+def parse_params(args: argparse.Namespace, out: "Out") -> Optional[Dict[str, Any]]:
+    """--params '{"a": 1}' and/or repeated --param key=value (the shell-proof way)."""
+    params: Dict[str, Any] = {}
+    if getattr(args, "params", None):
+        try:
+            value = json.loads(args.params)
+        except ValueError:
+            value = _loose_object(args.params)
+        if not isinstance(value, dict):
+            out.say("--params 需要是 JSON 对象。也可以写成 --param source=downloads（可重复）。",
+                    "--params must be a JSON object. You can also use --param source=downloads (repeatable).")
+            return None
+        params.update(value)
+    for item in getattr(args, "param", None) or []:
+        key, sep, raw = item.partition("=")
+        if not sep or not key.strip():
+            out.say(f"--param 的写法是 key=value，收到的是：{item}", f"--param looks like key=value, got: {item}")
+            return None
+        try:
+            params[key.strip()] = json.loads(raw)
+        except ValueError:
+            params[key.strip()] = raw
+    return params
 
 
 def _workspace(args: argparse.Namespace) -> Workspace:
@@ -127,7 +190,7 @@ def cmd_use(args: argparse.Namespace) -> int:
     if args.theme not in themes:
         out.say(f"找不到主题 {args.theme}。用 orbit.py themes 查看全部。", f"No theme '{args.theme}'. See: orbit.py themes")
         return 1
-    ws.update(active_theme=args.theme)
+    ws.update(active_theme=args.theme, theme_source="user")
     port = config["port"]
     if ping(port):
         _api_post(ws, "/api/theme/activate", {"id": args.theme})
@@ -259,7 +322,13 @@ def cmd_snapshot(args: argparse.Namespace) -> int:
     theme_id = (env.read_json(folder / "theme.json", {}) or {}).get("id") or folder.name
     query = "snapshot=1" + ("" if args.live else "&demo=1") + ("&" + args.query.lstrip("?&") if args.query else "")
     url = f"{hosts.base_url(config['port'])}/themes/{theme_id}/?{query}"
-    target = Path(args.out).expanduser() if args.out else folder / "preview.png"
+    if args.out:
+        target = Path(args.out).expanduser()
+    elif env.BUILTIN_THEMES in folder.parents:
+        # bundled themes ship their own preview; keep the skill folder untouched
+        target = ws.root / "previews" / f"{theme_id}.png"
+    else:
+        target = folder / "preview.png"
     ok, detail = hosts.snapshot(url, target, width, height, args.wait)
     if ok:
         out.say(f"截图已保存：{detail}", f"Snapshot saved: {detail}")
@@ -297,10 +366,8 @@ def cmd_run(args: argparse.Namespace) -> int:
             f"'{args.action} {op}' really changes your computer ({effect}). Add --yes to run it, or use 'preview' to see what would happen.",
         )
         return 2
-    try:
-        requested = json.loads(args.params) if args.params else {}
-    except ValueError:
-        out.say("--params 需要是 JSON，例如 '{\"source\": \"downloads\"}'。", "--params must be JSON, e.g. '{\"source\": \"downloads\"}'.")
+    requested = parse_params(args, out)
+    if requested is None:
         return 1
     params = merge_params(manifest, ws.action_params(config, args.action), requested)
 
@@ -378,8 +445,11 @@ def cmd_set_location(args: argparse.Namespace) -> int:
     if args.pick is None and len(places) > 1 and sys.stdin.isatty():
         for index, place in enumerate(places, 1):
             print(f" {index}. {place['name']}, {place.get('admin1') or ''} {place.get('country') or ''}")
+        answer = ask(out.t("选择序号：", "Pick a number: "))
+        if answer is None:
+            return 1
         try:
-            choice = int(input(out.t("选择序号：", "Pick a number: ")).strip() or "1")
+            choice = int(answer.strip() or "1")
         except ValueError:
             choice = 1
     else:
@@ -433,6 +503,18 @@ def _put_on_desktop(ws: Workspace, out: Out) -> bool:
                 "Install the free, open-source Lively Wallpaper first (it places web pages on the desktop):\n"
                 "  winget install -e --id rocksdanister.LivelyWallpaper\n"
                 f"  or download it from {hosts.LIVELY_WEBSITE}. Then run this again.",
+            )
+            return False
+        if detail == "lively-store":
+            # The Microsoft Store version cannot be driven from the command line, but our entry is in its library.
+            hosts.copy_to_clipboard(url)
+            out.say(
+                "已把「Orbit Desktop」放进 Lively 的壁纸库。打开 Lively，在库里点「Orbit Desktop」把它设为壁纸即可。"
+                "不要再用 “+” 添加，否则库里会出现两个。\n"
+                f"如果库里没有，先完全退出并重新打开 Lively；还是没有时再点 “+”，粘贴已复制的网址 {url}。",
+                "Orbit Desktop is now in Lively's library. Open Lively and click 'Orbit Desktop' to set it as the wallpaper. "
+                "Don't add it again with '+', or the library will show it twice.\n"
+                f"If it is not there, quit and reopen Lively; only if it is still missing click '+' and paste the copied address {url}.",
             )
             return False
         copied = hosts.copy_to_clipboard(url)
@@ -558,19 +640,24 @@ def cmd_quickstart(args: argparse.Namespace) -> int:
     """A small menu for people who double-clicked the start script."""
     ws = _workspace(args)
     config = ws.ensure()
-    out = Out(config["language"])
     print()
     print("  ◯  Orbit Desktop " + VERSION)
+    if config.get("language_source") != "user" and interactive():
+        current = "中文" if config["language"].startswith("zh") else "English"
+        answer = ask(f"  语言 / Language:  1) 中文   2) English   [Enter = {current}] ")
+        language = {"1": "zh-CN", "2": "en"}.get((answer or "").strip(), config["language"])
+        updates: Dict[str, Any] = {"language": language, "language_source": "user"}
+        if config.get("theme_source", "default") == "default":
+            updates["active_theme"] = default_theme(language)  # e.g. 墨痕书房 for Chinese
+        config = ws.update(**updates)
+    out = Out(config["language"])
     if not _require_helper(ws, out):
-        input(out.t("按回车退出", "Press Enter to exit"))
+        ask(out.t("按回车退出", "Press Enter to exit"))
         return 1
     url = hosts.base_url(config["port"]) + "/"
     out.say(f"  桌面助手已在后台运行：{url}", f"  The helper is running in the background: {url}")
-    if not config.get("location") and sys.stdin is not None and sys.stdin.isatty():
-        try:
-            query = input(out.t("  天气用哪个城市？（中文或英文，直接回车跳过）：", "  Which city for the weather? (Enter to skip): ")).strip()
-        except (EOFError, KeyboardInterrupt):
-            query = ""
+    if not config.get("location") and interactive():
+        query = (ask(out.t("  天气用哪个城市？（中文或英文，直接回车跳过）：", "  Which city for the weather? (Enter to skip): ")) or "").strip()
         if query:
             cmd_set_location(argparse.Namespace(workspace=args.workspace, query=query, pick=None))
     menu = [
@@ -587,10 +674,10 @@ def cmd_quickstart(args: argparse.Namespace) -> int:
         print()
         for key, label in menu:
             print(f"   {key}) {label}")
-        try:
-            choice = input("  > ").strip().lower()
-        except (EOFError, KeyboardInterrupt):
+        answer = ask("  > ")
+        if answer is None:
             return 0
+        choice = answer.strip().lower()
         if choice == "1":
             hosts.open_preview(ws, url, fullscreen=True)
             out.say("  已打开。按 F11 退出全屏，Alt+F4 关闭。", "  Opened. F11 leaves full screen, Alt+F4 closes it.")
@@ -598,9 +685,9 @@ def cmd_quickstart(args: argparse.Namespace) -> int:
             env.open_path(hosts.base_url(config["port"]) + "/gallery")
         elif choice == "3":
             if env.IS_WINDOWS and not hosts.find_lively()["installed"] and shutil.which("winget"):
-                answer = input(out.t("  需要免费开源的 Lively Wallpaper 才能放到桌面上。现在用 winget 安装吗？[y/N] ",
-                                     "  Lively Wallpaper (free, open source) puts the page on the desktop. Install it now with winget? [y/N] "))
-                if answer.strip().lower() in ("y", "yes", "是"):
+                answer = ask(out.t("  需要免费开源的 Lively Wallpaper 才能放到桌面上。现在用 winget 安装吗？[y/N] ",
+                                   "  Lively Wallpaper (free, open source) puts the page on the desktop. Install it now with winget? [y/N] "))
+                if (answer or "").strip().lower() in ("y", "yes", "是"):
                     subprocess.run(["winget", "install", "-e", "--id", "rocksdanister.LivelyWallpaper",
                                     "--accept-package-agreements", "--accept-source-agreements"])
             placed = _put_on_desktop(ws, out)
@@ -608,10 +695,7 @@ def cmd_quickstart(args: argparse.Namespace) -> int:
             if placed:
                 out.say("  完成。开机后桌面会自动出现。", "  Done. It will come back after you sign in.")
         elif choice == "4":
-            try:
-                query = input(out.t("  城市名（中文或英文）：", "  City name: ")).strip()
-            except (EOFError, KeyboardInterrupt):
-                continue
+            query = (ask(out.t("  城市名（中文或英文）：", "  City name: ")) or "").strip()
             if query:
                 ns = argparse.Namespace(workspace=args.workspace, query=query, pick=None)
                 cmd_set_location(ns)
@@ -676,6 +760,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("action")
     p.add_argument("op", nargs="?", default="preview")
     p.add_argument("--params", help="JSON object of parameters")
+    p.add_argument("--param", action="append", default=[], metavar="KEY=VALUE",
+                   help="one parameter, repeatable; works in every shell (values may be JSON: true, 3, [\"a\"])")
     p.add_argument("--yes", action="store_true", help="allow operations that change files or apps")
     p.add_argument("--json", action="store_true")
     p = add("new-action", cmd_new_action, "create a new action in the workspace from the template")

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -99,6 +100,28 @@ def ancestors() -> Set[int]:
 def clean_name(text: str) -> str:
     """Drop invisible formatting characters some apps put in their names (e.g. U+200E)."""
     return "".join(ch for ch in str(text or "") if unicodedata.category(ch) != "Cf").strip()
+
+
+def display_name(path: str, description: str, title: str) -> str:
+    """A friendly name for a Windows program.
+
+    The .exe's FileDescription is usually right ("Google Chrome"), but some apps ship a
+    description that names something else (the ChatGPT desktop app has reported "Codex").
+    Trust it when it is localized or clearly related to the file name; otherwise use the
+    file name, then the window title.
+    """
+    stem = os.path.splitext(re.split(r"[\\/]+", path or "")[-1])[0]
+    description = clean_name(description)
+    if description:
+        if any("\u4e00" <= ch <= "\u9fff" for ch in description) or not stem or len(stem) <= 3:
+            return description
+        low_stem, low_desc = stem.lower(), description.lower()
+        if low_stem in low_desc or low_desc in low_stem:
+            return description
+        for word in re.findall(r"[a-z0-9]{3,}", low_desc):
+            if word[:4] in low_stem or low_stem[:4] in word:
+                return description
+    return clean_name(stem or title)
 
 
 def _match_any(values: List[str], app: Dict[str, Any]) -> bool:
@@ -406,7 +429,7 @@ def win_list(ctx: kit.Context) -> List[Dict[str, Any]]:
                 continue
             key = f"pid:{pid}"
             if key not in apps:
-                name = clean_name(_file_description(path) or (os.path.splitext(exe)[0] if exe else "") or _window_text(hwnd))
+                name = display_name(path, _file_description(path), _window_text(hwnd))
                 apps[key] = {
                     "id": exe or name, "name": name, "exe": exe, "path": path, "pid": pid,
                     "created": _process_created(pid), "kind": "app" if path else "unknown", "windows": [],

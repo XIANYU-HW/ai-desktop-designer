@@ -44,7 +44,8 @@ Bundled themes and actions are read from `SKILL_DIR`; a workspace item with the 
 
 1. **Check the machine.** `orbit.py doctor`. If Python is missing on Windows, offer
    `winget install -e --id Python.Python.3.12 --scope user` (ask first). Then `orbit.py init --lang zh-CN`
-   (or `en`), `orbit.py set-location "<city>" --pick 1` if a city is known, and `orbit.py start`.
+   (or `en`: use the language the user writes in, not the system's UI language), `orbit.py set-location "<city>" --pick 1`
+   if a city is known, and `orbit.py start`.
 2. **Understand the wish in a few questions at most:** the world or mood (offer the bundled examples via
    `orbit.py gallery`), which functions they want (`orbit.py actions`), light or dark, how much motion.
    If the request is already clear, pick sensible defaults and say which.
@@ -59,7 +60,7 @@ Bundled themes and actions are read from `SKILL_DIR`; a workspace item with the 
    `orbit.py new-action <id>`, implement it per `references/action-guide.md`, then
    `orbit.py validate-action <id>` and `orbit.py run <id> preview`.
 6. **Check your work by looking at it.** `orbit.py validate <id>` then `orbit.py snapshot <id>`
-   and read the PNG. Also snapshot with `--out` at `--size 1366x768` and `--size 2560x1440`. Fix
+   and read the PNG (bundled themes are rendered to `~/OrbitDesktop/previews/`, so their shipped previews stay intact). Also snapshot with `--out` at `--size 1366x768` and `--size 2560x1440`. Fix
    overlaps with the desktop-icon area, unreadable text, empty states and clutter before showing the user.
    `orbit.py open <id> --window` shows it to the user; `?demo`, `?daypart=night`, `?weather=rain` in the
    URL preview other states.
@@ -79,7 +80,7 @@ Bundled themes and actions are read from `SKILL_DIR`; a workspace item with the 
 | `new-theme ID [--from template\|THEME] [--name N]` | Create a theme in the workspace |
 | `validate [ID...]`, `snapshot ID [--size WxH] [--live] [--out F]` | Check a theme; render it to PNG (demo data by default) |
 | `open [ID] [--window]` | Preview in a full-screen (or normal) browser window |
-| `actions`, `run ACTION [OP] [--params JSON] [--yes] [--json]` | List actions; run one operation (default `preview`) |
+| `actions`, `run ACTION [OP] [--param KEY=VALUE ...] [--yes] [--json]` | List actions; run one operation (default `preview`). Prefer repeated `--param` over `--params JSON`: Windows PowerShell strips the quotes inside JSON |
 | `new-action ID`, `validate-action ID` | Create and check a custom action |
 | `set-location CITY [--pick N]`, `config [KEY] [VALUE]` | Weather place; language, units, port |
 | `install [--no-autostart]`, `uninstall`, `autostart on\|off\|status` | Desktop host and start at sign-in |

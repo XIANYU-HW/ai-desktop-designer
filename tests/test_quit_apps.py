@@ -45,6 +45,18 @@ class ProtectionTest(unittest.TestCase):
         self.assertIsNone(self.reason({"name": "Google Chrome", "exe": "chrome.exe"}, only=["chrome"]))
         self.assertIsNotNone(self.reason({"name": "Code", "exe": "code.exe", "pid": 2}))
 
+    def test_display_names(self):
+        name = quit_apps.display_name
+        self.assertEqual(name(r"C:\\Apps\\ChatGPT.exe", "Codex", "ChatGPT"), "ChatGPT")
+        self.assertEqual(name(r"C:\\x\\chrome.exe", "Google Chrome", "New Tab"), "Google Chrome")
+        self.assertEqual(name(r"C:\\x\\msedge.exe", "Microsoft Edge", ""), "Microsoft Edge")
+        self.assertEqual(name(r"C:\\x\\WINWORD.EXE", "Microsoft Word", ""), "Microsoft Word")
+        self.assertEqual(name(r"C:\\x\\POWERPNT.EXE", "Microsoft PowerPoint", ""), "Microsoft PowerPoint")
+        self.assertEqual(name(r"C:\\x\\Weixin.exe", "微信", ""), "微信")
+        self.assertEqual(name(r"C:\\x\\olk.exe", "Outlook", ""), "Outlook")
+        self.assertEqual(name(r"C:\\x\\Notion.exe", "Electron", ""), "Notion")
+        self.assertEqual(name("", "", "Calculator"), "Calculator")
+
     def test_clean_name_drops_invisible_marks(self):
         self.assertEqual(quit_apps.clean_name("‎WhatsApp"), "WhatsApp")
 

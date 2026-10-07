@@ -345,7 +345,7 @@ def make_handler(app: App) -> "type[BaseHTTPRequestHandler]":
                 theme_id = str(body.get("id") or "")
                 if theme_id not in app.themes:
                     return self._deny(404, "unknown-theme")
-                app.workspace.update(active_theme=theme_id)
+                app.workspace.update(active_theme=theme_id, theme_source="user")
                 app.reload()
                 app.bus.publish("theme-changed", {"id": theme_id})
                 return self._json(200, {"ok": True, "active_theme": theme_id})

@@ -10,7 +10,9 @@ set per user in `~/OrbitDesktop/config.json`:
 
 and per button in a theme with `data-orbit-params='{"source":"downloads"}'` (a theme can only set
 parameters the action declares). Test any operation from the command line:
-`orbit.py run <action> <op> [--params '{...}'] [--yes]`.
+`orbit.py run <action> <op> [--param key=value ...] [--yes]`, for example
+`orbit.py run tidy-files preview --param source=downloads`. `--param` works the same in every shell;
+`--params '{...}'` also works, but Windows PowerShell 5.1 strips the quotes inside JSON.
 
 ## tidy-files · 一键收纳 (Windows, macOS, Linux)
 

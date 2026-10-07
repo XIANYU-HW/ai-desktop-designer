@@ -55,6 +55,10 @@ def find_free_port(start: int = DEFAULT_PORT, attempts: int = 60) -> int:
     return start
 
 
+def default_theme(language: str) -> str:
+    return "ink-study" if str(language).startswith("zh") else "deep-orbit"
+
+
 class Workspace:
     def __init__(self, root: Optional[Path] = None):
         self.root = Path(root) if root else env.workspace_dir()
@@ -99,15 +103,19 @@ class Workspace:
             config["port"] = find_free_port(int(config["port"]) + 1)  # another program already uses the default
         if language:
             config["language"] = language
+            config["language_source"] = "user"
             changed = True
         if not config.get("language"):
             config["language"] = env.detect_language()
+            config["language_source"] = "detected"  # the start menu asks once to confirm it
             changed = True
         if theme:
             config["active_theme"] = theme
+            config["theme_source"] = "user"
             changed = True
         if not config.get("active_theme"):
-            config["active_theme"] = "ink-study" if config["language"].startswith("zh") else "deep-orbit"
+            config["active_theme"] = default_theme(config["language"])
+            config["theme_source"] = "default"
             changed = True
         if not config.get("token"):
             config["token"] = secrets.token_urlsafe(24)
