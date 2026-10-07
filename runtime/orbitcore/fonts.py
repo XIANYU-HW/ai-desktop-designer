@@ -142,12 +142,13 @@ def bundle(
         existing = re.sub(re.escape(marker_start) + r".*?" + re.escape(marker_end), "", existing, flags=re.S)
         block += marker_start + "".join(f for f in faces if f"font-weight: {weight};" in f) + marker_end
     header = "" if existing.strip() else (
-        "/* Fonts bundled with orbit.py fonts: subsets downloaded from Google Fonts (SIL Open Font License).\n"
+        "/* Fonts bundled with orbit.py fonts: subsets downloaded from Google Fonts (licenses in LICENSE.txt).\n"
         "   Load with <link rel=\"stylesheet\" href=\"assets/fonts/fonts.css\"> before style.css. */\n"
     )
     css_path.write_text(header + existing + block, encoding="utf-8")
     licence = out_dir / "LICENSE.txt"
-    note = f"{family}: SIL Open Font License 1.1 — https://fonts.google.com/specimen/{family.replace(' ', '+')}\n"
+    note = (f"{family}: from Google Fonts; license on https://fonts.google.com/specimen/{family.replace(' ', '+')}/license "
+            "(most families use the SIL Open Font License 1.1)\n")
     previous = licence.read_text(encoding="utf-8") if licence.exists() else ""
     if note not in previous:
         licence.write_text(previous + note, encoding="utf-8")

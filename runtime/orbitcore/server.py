@@ -171,11 +171,15 @@ def _inject(html: str, app: App, theme_id: str) -> str:
         f'<meta name="orbit-lang" content="{app.lang}">'
         f'<meta name="orbit-theme" content="{theme_id}">'
         f'<meta name="orbit-platform" content="{env.PLATFORM}">'
+        '<meta name="google" content="notranslate">'  # no "Translate this page?" bubble, even before scripts run
     )
-    match = re.search(r"<head[^>]*>", html, re.I)
+    match = re.search(r"<head(?:\s[^>]*)?>", html, re.I)  # not <header>
     if match:
-        return html[: match.end()] + tags + html[match.end():]
-    return tags + html
+        html = html[: match.end()] + tags + html[match.end():]
+    else:
+        html = tags + html
+    # mark the document itself as not for translation too
+    return re.sub(r"<html(?![^>]*\btranslate=)", '<html translate="no"', html, count=1, flags=re.I)
 
 
 def make_handler(app: App) -> "type[BaseHTTPRequestHandler]":

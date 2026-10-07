@@ -695,6 +695,7 @@
       doc.fonts.forEach(function (f) { report.fonts.push({ family: f.family.replace(/["']/g, ''), weight: f.weight, style: f.style, status: f.status }); });
     }
     var safeLeft = platform === 'windows' ? 112 : 0, safeRight = platform === 'macos' ? 118 : 0, taskbar = vh * 0.94;
+    var stackCache = {};
     function visible(el) {
       var cs = global.getComputedStyle(el);
       if (cs.visibility === 'hidden' || cs.display === 'none') return false;
@@ -713,8 +714,17 @@
       var own = Array.prototype.some.call(el.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim(); });
       if (!own || !visible(el)) return;
       var cs = global.getComputedStyle(el), r = el.getBoundingClientRect(), size = parseFloat(cs.fontSize);
-      var family = cs.fontFamily.split(',')[0].trim().replace(/["']/g, '');
-      if (!Object.prototype.hasOwnProperty.call(report.families, family)) report.families[family] = fontAvailable(family);
+      // A stack such as "KaiTi", "STKaiti", "Kaiti SC", serif is fine when any named font exists:
+      // report the one that is actually used, and flag the stack only when all of them are missing.
+      var stack = cs.fontFamily.split(',').map(function (f) { return f.trim().replace(/["']/g, ''); }).filter(function (f) {
+        return f && !/^(serif|sans-serif|monospace|system-ui|cursive|fantasy|ui-[a-z-]+|-apple-system|BlinkMacSystemFont)$/i.test(f);
+      });
+      var family = stack.length ? stack[0] : cs.fontFamily;
+      for (var s = 0; s < stack.length; s++) {
+        if (stackCache[stack[s]] === undefined) stackCache[stack[s]] = fontAvailable(stack[s]);
+        if (stackCache[stack[s]]) { family = stack[s]; break; }
+      }
+      if (!Object.prototype.hasOwnProperty.call(report.families, family)) report.families[family] = stack.length ? !!stackCache[family] : true;
       report.text.push({ el: label(el), size: Math.round(size * 10) / 10, family: family, rect: [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)] });
       if (r.left < safeLeft || r.right > vw - safeRight) report.zones.push({ el: label(el), zone: 'desktop icons' });
       if (r.bottom > taskbar) report.zones.push({ el: label(el), zone: 'taskbar / Dock' });
