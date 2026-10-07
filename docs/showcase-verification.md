@@ -41,7 +41,7 @@ context. `--publish-assets` additionally refreshes the four real screenshots use
 
 The compact [acceptance record](showcase-acceptance.json) lists the assertions and capture dimensions.
 GitHub Actions independently runs the Windows/macOS/Linux matrix and browser smoke captures;
-consult the commit's [Actions results](https://github.com/XIANYU-HW/orbit-desktop/actions) for its current status.
+consult the commit's [Actions results](https://github.com/XIANYU-HW/ai-desktop-designer/actions) for its current status.
 
 ## Published screenshot provenance
 

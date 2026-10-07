@@ -12,7 +12,7 @@ from . import VERSION, env
 
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
-USER_AGENT = f"OrbitDesktop/{VERSION} (+https://github.com/XIANYU-HW/orbit-desktop)"
+USER_AGENT = f"OrbitDesktop/{VERSION} (+https://github.com/XIANYU-HW/ai-desktop-designer)"
 
 # WMO weather code -> (kind, Chinese, English)
 WMO = {

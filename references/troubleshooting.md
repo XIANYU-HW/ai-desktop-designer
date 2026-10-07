@@ -43,7 +43,7 @@ browser startup in that CI environment, but does not establish its underlying
 OS/browser/package-layout cause or imply that every macOS 26 installation is
 affected. A successful run in the pinned environment does not by itself identify
 which of those differences resolved the failure. See the
-[diagnostic run and full stderr artifacts](https://github.com/XIANYU-HW/orbit-desktop/actions/runs/37582760338).
+[diagnostic run and full stderr artifacts](https://github.com/XIANYU-HW/ai-desktop-designer/actions/runs/37582760338).
 
 For a similar failure, retain the browser version and complete startup stderr,
 and try a minimal page before investigating theme code. The failure-only CI

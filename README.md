@@ -1,9 +1,12 @@
-# Orbit Desktop
+# AI Desktop Designer
+
+**AI 桌面设计 Skill · Windows & macOS**
+
 ### 把你想象的世界，做成每天使用的桌面。
 **Turn a world you love into a desktop you can live in.**
 
-[![CI](https://github.com/XIANYU-HW/orbit-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/XIANYU-HW/orbit-desktop/actions/workflows/ci.yml)
-[**进入主题展厅 →**](https://xianyu-hw.github.io/orbit-desktop/) · [三体试玩](https://xianyu-hw.github.io/orbit-desktop/themes/threebody-observatory/?demo=1&lang=zh-CN) · [原神试玩](https://xianyu-hw.github.io/orbit-desktop/themes/genshin-sumeru/?demo=1&lang=zh-CN) · [使用方法](#开始使用) · [English](#english)
+[![CI](https://github.com/XIANYU-HW/ai-desktop-designer/actions/workflows/ci.yml/badge.svg)](https://github.com/XIANYU-HW/ai-desktop-designer/actions/workflows/ci.yml)
+[**进入主题展厅 →**](https://xianyu-hw.github.io/ai-desktop-designer/) · [三体试玩](https://xianyu-hw.github.io/ai-desktop-designer/themes/threebody-observatory/?demo=1&lang=zh-CN) · [原神试玩](https://xianyu-hw.github.io/ai-desktop-designer/themes/genshin-sumeru/?demo=1&lang=zh-CN) · [使用方法](#开始使用) · [English](#english)
 
 早晨，在须弥的树荫下记一行灵感。深夜，在三日凌空的观测站，归档最后一份文件。
 
@@ -11,14 +14,14 @@
 
 **你给出想象，AI 把它写成可以生活、可以工作的桌面。**
 
-Orbit Desktop 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计 Skill**，附带可独立运行的主题引擎与本机工具。从主题内核出发，把画面、运动、交互和日常功能一起设计出来。
+AI Desktop Designer 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计 Skill**，附带可独立运行的主题引擎与本机工具。从主题内核出发，把画面、运动、交互和日常功能一起设计出来。
 
 ---
 
 ## 01 / 三体 · 文明观测站
 ### 在不可预测的世界，留下秩序。
 
-[![三体主题实际运行截图：青铜观测环、三日轨迹与文明工具](themes/threebody-observatory/preview.png)](https://xianyu-hw.github.io/orbit-desktop/themes/threebody-observatory/?demo=1&lang=zh-CN)
+[![三体主题实际运行截图：青铜观测环、三日轨迹与文明工具](themes/threebody-observatory/preview.png)](https://xianyu-hw.github.io/ai-desktop-designer/themes/threebody-observatory/?demo=1&lang=zh-CN)
 
 荒原、青铜观测环、深空中的三颗恒星。这里的主题来自“三体”中的**不可预测、观测与文明延续**：你能改变观测状态，也能为自己的工作留下一段确定的时间。
 
@@ -29,14 +32,14 @@ Orbit Desktop 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计
 | 开始一段专注 | 25 分钟倒计时，把注意力留在一项工作上 |
 | 归档文件、打开资料、结束工作 | 通过「文明归档」「文明资料库」「静默值守」完成；保留清楚的功能说明 |
 
-[**进入观测站 →**](https://xianyu-hw.github.io/orbit-desktop/themes/threebody-observatory/?demo=1&lang=zh-CN)
+[**进入观测站 →**](https://xianyu-hw.github.io/ai-desktop-designer/themes/threebody-observatory/?demo=1&lang=zh-CN)
 
 *这是文学主题的视觉演绎，轨迹是有界的概念动画，并非天体预报或科学模拟。*
 
 ## 02 / 原神 · 须弥知识之庭
 ### 让知识生长，让日常融入风景。
 
-[![须弥主题实际运行截图：树城、瀑布、金色植物纹样与庭院工具](themes/genshin-sumeru/preview.png)](https://xianyu-hw.github.io/orbit-desktop/themes/genshin-sumeru/?demo=1&lang=zh-CN)
+[![须弥主题实际运行截图：树城、瀑布、金色植物纹样与庭院工具](themes/genshin-sumeru/preview.png)](https://xianyu-hw.github.io/ai-desktop-designer/themes/genshin-sumeru/?demo=1&lang=zh-CN)
 
 树城与瀑布向远处展开，时间栖在林荫里，工具化作庭院中的卷宗。**知识、自然与元素之间的联系**决定了这套主题的形态：它更繁复、更明亮，功能分散在适合它们的位置。
 
@@ -47,7 +50,7 @@ Orbit Desktop 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计
 | 打开「林间便笺」 | 记下想法，便笺保存在当前浏览器本地 |
 | 使用「秘典归档」「卷宗入口」「旅途暂歇」 | 同样的日常工具，重新设计为植物纹样与卷宗式控件 |
 
-[**漫步知识之庭 →**](https://xianyu-hw.github.io/orbit-desktop/themes/genshin-sumeru/?demo=1&lang=zh-CN)
+[**漫步知识之庭 →**](https://xianyu-hw.github.io/ai-desktop-designer/themes/genshin-sumeru/?demo=1&lang=zh-CN)
 
 *原创同人场景与元素互动，不是游戏截图，也不复现游戏数值规则。两套主题均无官方关联或背书。[素材与创作说明](docs/showcase-art.md)*
 
@@ -59,7 +62,7 @@ Orbit Desktop 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计
 
 先想把散落的文件整理好。接着，希望整理是一枚融入画面的按钮，天气和时钟像是风景的一部分。再后来，希望河流会流动、星空会回应鼠标，换一个主题时，整套桌面也能换一种性格。
 
-一次次迭代留下了一套方法：**理解主题，设计整个场景，让功能落地，亲手测试，再把旧主题妥善保留。** Orbit Desktop 把这套方法写进 Skill，交给 AI，也交给下一个有想法的人。
+一次次迭代留下了一套方法：**理解主题，设计整个场景，让功能落地，亲手测试，再把旧主题妥善保留。** AI Desktop Designer 把这套方法写进 Skill，交给 AI，也交给下一个有想法的人。
 
 ## 这个 Skill 教 AI 做什么？
 
@@ -75,7 +78,7 @@ Orbit Desktop 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计
 
 ### 给 AI 的一句话
 
-> 用 orbit-desktop 做一个深海研究站桌面。主题围绕“探索与记录”，要有待办、资料入口和专注计时。声呐扫过时能与鼠标互动；整体安静，保留我的旧主题，先在浏览器给我看实际效果。
+> 用 ai-desktop-designer 做一个深海研究站桌面。主题围绕“探索与记录”，要有待办、资料入口和专注计时。声呐扫过时能与鼠标互动；整体安静，保留我的旧主题，先在浏览器给我看实际效果。
 
 也可以只改一个细节：
 
@@ -85,7 +88,7 @@ Orbit Desktop 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计
 
 ### 先试玩
 
-[打开在线展厅](https://xianyu-hw.github.io/orbit-desktop/)。无需下载，无需桌面权限；建议使用电脑浏览器体验交互。
+[打开在线展厅](https://xianyu-hw.github.io/ai-desktop-designer/)。无需下载，无需桌面权限；建议使用电脑浏览器体验交互。
 
 ### 让 AI 为你设计
 
@@ -93,25 +96,27 @@ Orbit Desktop 是面向 **Codex、Claude Code 等 AI 编程助手的桌面设计
 
 ```bash
 # Codex — macOS / Linux
-git clone https://github.com/XIANYU-HW/orbit-desktop ~/.agents/skills/orbit-desktop
+git clone https://github.com/XIANYU-HW/ai-desktop-designer ~/.agents/skills/ai-desktop-designer
 
 # Claude Code — macOS / Linux
-git clone https://github.com/XIANYU-HW/orbit-desktop ~/.claude/skills/orbit-desktop
+git clone https://github.com/XIANYU-HW/ai-desktop-designer ~/.claude/skills/ai-desktop-designer
 ```
 
 ```powershell
 # Windows PowerShell — Codex
-git clone https://github.com/XIANYU-HW/orbit-desktop "$env:USERPROFILE\.agents\skills\orbit-desktop"
+git clone https://github.com/XIANYU-HW/ai-desktop-designer "$env:USERPROFILE\.agents\skills\ai-desktop-designer"
 
 # Windows PowerShell — Claude Code
-git clone https://github.com/XIANYU-HW/orbit-desktop "$env:USERPROFILE\.claude\skills\orbit-desktop"
+git clone https://github.com/XIANYU-HW/ai-desktop-designer "$env:USERPROFILE\.claude\skills\ai-desktop-designer"
 ```
 
-入口是 [SKILL.md](SKILL.md)。AI 会按需求、设计、实现、画面与交互验收、授权安装的流程工作。
+入口是 [SKILL.md](SKILL.md)，可用 `$ai-desktop-designer` 调用。AI 会按需求、设计、实现、画面与交互验收、授权安装的流程工作。
+
+项目原名 Orbit Desktop。更新已有 Skill 后，可将安装文件夹改名为 `ai-desktop-designer`；本机助手仍保留 Orbit 名称、`~/OrbitDesktop` 工作区与原有命令，继续兼容已有主题和配置。
 
 ### 直接运行示例
 
-[下载 ZIP](https://github.com/XIANYU-HW/orbit-desktop/archive/refs/heads/main.zip) 并解压：
+[下载 ZIP](https://github.com/XIANYU-HW/ai-desktop-designer/archive/refs/heads/main.zip) 并解压：
 
 | 系统 | 启动 | 桌面宿主 |
 |---|---|---|
@@ -160,9 +165,9 @@ macOS / Linux 可用 `python3`。用户工作区默认 `~/OrbitDesktop`，与仓
 
 基础示例仍保留，适合学习不同实现方式：
 
-- [墨痕书房](https://xianyu-hw.github.io/orbit-desktop/themes/ink-study/?demo=1)：纸墨、卷轴、时辰。
-- [深空轨道](https://xianyu-hw.github.io/orbit-desktop/themes/deep-orbit/?demo=1)：数据驱动的轨道与碎片。
-- [磁盘整理 95](https://xianyu-hw.github.io/orbit-desktop/themes/defrag-95/?demo=1)：复古窗口与整理进度。
+- [墨痕书房](https://xianyu-hw.github.io/ai-desktop-designer/themes/ink-study/?demo=1)：纸墨、卷轴、时辰。
+- [深空轨道](https://xianyu-hw.github.io/ai-desktop-designer/themes/deep-orbit/?demo=1)：数据驱动的轨道与碎片。
+- [磁盘整理 95](https://xianyu-hw.github.io/ai-desktop-designer/themes/defrag-95/?demo=1)：复古窗口与整理进度。
 
 继续阅读：[设计原则](references/design-principles.md) · [主题指南](references/theme-guide.md) · [验收方法](references/quality-review.md) · [设计案例](references/design-cases.md) · [展示验证](docs/showcase-verification.md)
 
@@ -174,21 +179,21 @@ macOS / Linux 可用 `python3`。用户工作区默认 `~/OrbitDesktop`，与仓
 
 Keep a thought beneath Sumeru's canopy. File away the day beneath three suns. Move the pointer, and the world responds.
 
-**Orbit Desktop is an agent skill for designing a coherent, useful desktop around a world, a mood or a way of working.** It includes a portable web-theme runtime and a local Python helper. Use it with Codex, Claude Code or another compatible coding agent.
+**AI Desktop Designer is an agent skill for designing a coherent, useful desktop around a world, a mood or a way of working.** It includes a portable web-theme runtime and a local Python helper. Use it with Codex, Claude Code or another compatible coding agent.
 
 ### Two worlds, different design languages
 
 - **Three-body · Civilization Observatory** — Bronze instruments, a desolate horizon and a three-star sky. Switch between stable and chaotic eras, perturb the observation, start a focus session and archive your work. The trajectories are conceptual choreography, not astronomy.
 - **Genshin · Sumeru Garden of Knowledge** — A lush tree city, waterfalls and botanical gold ornament. Dendro, water and electro produce distinct garden responses. Keep a local note and use scroll-like tools woven into the setting. An original unofficial fan interpretation, not an in-game scene.
 
-[**Explore the live demos →**](https://xianyu-hw.github.io/orbit-desktop/)
+[**Explore the live demos →**](https://xianyu-hw.github.io/ai-desktop-designer/)
 The screenshots show running themes. Public demos simulate file/app operations and weather; the timer and browser-local notes remain usable.
 
 ### What the skill provides
 
 A requirements-to-delivery workflow: derive the design from the brief, build artwork and useful controls together, test real interactions with temporary data, inspect renders, and verify the authorized installation in its actual host. Preserve existing themes and recoverable user data. Quiet, static, photographic and completely different layouts are equally valid.
 
-Desktop targets: **Windows + Lively** and **macOS + Plash**. Linux supports browser previews. Python 3.9+; standard library only. Clone into `~/.agents/skills/orbit-desktop` for Codex or `~/.claude/skills/orbit-desktop` for Claude Code. Read [SKILL.md](SKILL.md), or download the ZIP and run the platform launcher.
+Desktop targets: **Windows + Lively** and **macOS + Plash**. Linux supports browser previews. Python 3.9+; standard library only. Clone into `~/.agents/skills/ai-desktop-designer` for Codex or `~/.claude/skills/ai-desktop-designer` for Claude Code. Read [SKILL.md](SKILL.md), or download the ZIP and run the platform launcher. Previously named Orbit Desktop; existing installations can rename their skill folder after updating. The bundled Orbit helper retains its workspace and commands for compatibility.
 
 The featured themes confirm filing and wind-down before execution; previews are also available for those actions. Tidy moves and journals files with verified undo; wind-down requests normal app closure and never force-quits or answers save prompts. Session restoration is app-dependent. There is no universal AI chat/model bridge. Browser tests do not certify Plash/Lively input or device performance. The local helper is authenticated, but themes and custom actions are trusted code, not sandboxed extensions.
 

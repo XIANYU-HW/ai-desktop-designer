@@ -1,9 +1,9 @@
 ---
-name: orbit-desktop
-description: Create or customize an integrated desktop experience on Windows or macOS, combining wallpaper, visual style, motion, widgets, and existing or newly built desktop actions. Use for desktop design, theme changes, custom desktop functions, or Orbit setup and repair. Not for editing a single standalone image.
+name: ai-desktop-designer
+description: Create or customize an integrated desktop experience on Windows or macOS, combining wallpaper, visual style, motion, widgets, and existing or newly built desktop actions. Use for desktop design, theme changes, custom desktop functions, or desktop runtime setup and repair. Not for editing a single standalone image.
 ---
 
-# Orbit Desktop
+# AI Desktop Designer
 
 Build the desktop the user asked for. Its imagery, typography, motion, information and controls should
 form a coherent design. Any style is valid: quiet typography, photography, illustration, pixel art,
