@@ -21,3 +21,31 @@ logged there too.
 | `--params must be JSON` in Windows PowerShell | PowerShell 5.1 removes the quotes inside JSON arguments. Use `--param key=value` (repeatable) instead, e.g. `--param source=downloads`. |
 | Lively shows Orbit Desktop twice | The Store version was given the address by hand although the entry already existed. Delete one of them in Lively's library. |
 | Snapshot fails | Install Chrome or Edge, or point `ORBIT_BROWSER` to a Chromium-based browser executable. |
+
+## macOS CI browser startup
+
+CI uses the supported `macos-15` ARM64 runner label and pins Chrome for Testing to
+155.0.8059.39. The setup action's exact-version installer preserves the outer
+`.app` bundle; its `stable` channel installer copies the bundle contents into its
+cache root instead. These explicit choices make the OS generation, browser
+version and package layout reproducible. The complete macOS test and browser
+screenshot checks still run. Available labels are listed in the
+[official runner images table](https://github.com/actions/runner-images#available-images).
+
+On 2026-10-07, runner image `macos-26-arm64/20260907.0351` (macOS 26.6.2) with
+Chrome for Testing 155.0.8059.39 installed using the `stable` channel layout failed
+before rendering a minimal HTML page:
+child processes logged `MachPortRendezvousServer` / `Permission denied (1100)`,
+then repeatedly terminated without a rendezvous client. Both `data:` and local
+HTTP pages failed with a new session or a new process group; each attempt reached
+its 20-second limit with no screenshot. This isolates that observed failure to
+browser startup in that CI environment, but does not establish its underlying
+OS/browser/package-layout cause or imply that every macOS 26 installation is
+affected. A successful run in the pinned environment does not by itself identify
+which of those differences resolved the failure. See the
+[diagnostic run and full stderr artifacts](https://github.com/XIANYU-HW/orbit-desktop/actions/runs/37582760338).
+
+For a similar failure, retain the browser version and complete startup stderr,
+and try a minimal page before investigating theme code. The failure-only CI
+diagnostic step records these details with bounded cleanup of its own browser
+process groups. Keep browser sandboxing enabled.
