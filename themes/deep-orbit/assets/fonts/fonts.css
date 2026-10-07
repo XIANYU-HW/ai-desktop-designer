@@ -1,0 +1,32 @@
+/* Fonts bundled with orbit.py fonts: subsets downloaded from Google Fonts (licenses in LICENSE.txt).
+   Load with <link rel="stylesheet" href="assets/fonts/fonts.css"> before style.css. */
+/* JetBrains Mono 300 normal — start */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 300;
+  font-display: block;
+  src: url("jetbrains-mono-300-0.woff2") format("woff2");
+  unicode-range: U+20-7E, U+B0, U+B7, U+D7, U+2013-2014, U+2018-2019, U+201C-201D, U+2026, U+2192;
+}
+/* JetBrains Mono 300 normal — end */
+/* JetBrains Mono 400 normal — start */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("jetbrains-mono-400-0.woff2") format("woff2");
+  unicode-range: U+20-7E, U+B0, U+B7, U+D7, U+2013-2014, U+2018-2019, U+201C-201D, U+2026, U+2192;
+}
+/* JetBrains Mono 400 normal — end */
+/* JetBrains Mono 600 normal — start */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url("jetbrains-mono-600-0.woff2") format("woff2");
+  unicode-range: U+20-7E, U+B0, U+B7, U+D7, U+2013-2014, U+2018-2019, U+201C-201D, U+2026, U+2192;
+}
+/* JetBrains Mono 600 normal — end */

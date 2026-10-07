@@ -42,5 +42,5 @@
     "actions": ["tidy-files", "quit-apps"],
     "data": ["clock", "weather", "system"]
   },
-  "performance": { "fps": 30 }
+  "performance": { "fps": 60 }
 }

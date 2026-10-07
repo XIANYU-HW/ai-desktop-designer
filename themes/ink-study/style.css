@@ -14,6 +14,11 @@
   --safe-left: 0px;
   --safe-right: 0px;
   --edge: 4.6vw;
+  /* a four-step type scale; nothing goes below 11px */
+  --t-display: 7.4vh;
+  --t-title: 3.3vh;
+  --t-text: max(12px, 1.85vh);
+  --t-caption: max(11px, 1.45vh);
   color-scheme: light;
 }
 :root[data-os="windows"] { --safe-left: 112px; }  /* desktop icons start top-left on Windows */
@@ -51,7 +56,7 @@ p, h1 { margin: 0; font-weight: normal; }
 }
 .title {
   writing-mode: vertical-rl;
-  font-size: 7.4vh;
+  font-size: var(--t-display);
   letter-spacing: 1.5vh;
   line-height: 1;
   text-shadow: 0 0 2vh var(--paper);
@@ -80,10 +85,10 @@ p, h1 { margin: 0; font-weight: normal; }
   color: var(--ink-soft);
 }
 .almanac p { white-space: nowrap; }
-.shichen { font-size: 3.2vh; color: var(--ink); letter-spacing: 0.5vh; }
-.time { font-size: 2vh; letter-spacing: 0.3vh; }
+.shichen { font-size: var(--t-title); color: var(--ink); letter-spacing: 0.5vh; }
+.time { font-size: var(--t-text); letter-spacing: 0.3vh; }
 .time .tcy { text-combine-upright: all; -webkit-text-combine: horizontal; }
-.date, .weather { font-size: 1.85vh; letter-spacing: 0.35vh; }
+.date, .weather { font-size: var(--t-text); letter-spacing: 0.35vh; }
 
 /* ------------------------------------------------------------ desk of slips */
 .desk {
@@ -125,8 +130,8 @@ p, h1 { margin: 0; font-weight: normal; }
 .slip-main { height: 26vh; width: 7.6vh; }
 .slip-minor { height: 18vh; }
 .slip-name, .slip-note { writing-mode: vertical-rl; white-space: nowrap; position: relative; }
-.slip-name { font-size: 3.3vh; letter-spacing: 0.7vh; }
-.slip-note { font-size: 1.45vh; letter-spacing: 0.25vh; color: var(--ink-soft); }
+.slip-name { font-size: var(--t-title); letter-spacing: 0.7vh; }
+.slip-note { font-size: var(--t-caption); letter-spacing: 0.25vh; color: var(--ink-soft); }
 .slip:hover, .slip:focus-visible { transform: translateY(-0.9vh); box-shadow: 0 1.4vh 2.6vh var(--shadow); outline: none; }
 .slip:focus-visible { border-color: var(--seal); }
 .slip.is-running { animation: breathe 1.8s ease-in-out infinite; }
@@ -150,7 +155,7 @@ p, h1 { margin: 0; font-weight: normal; }
   right: calc(var(--safe-right) + var(--edge));
   bottom: 5.6vh;
   max-width: 46vw;
-  font-size: 1.7vh;
+  font-size: var(--t-text);
   letter-spacing: 0.15vh;
   color: var(--ink-soft);
   text-align: right;
@@ -161,9 +166,10 @@ p, h1 { margin: 0; font-weight: normal; }
 .status:not(:empty)::before { content: "— "; color: var(--seal); }
 
 /* ------------------------------------------------------------ English labels */
-:root:lang(en) .title { font-size: 5.6vh; letter-spacing: 0.6vh; }
-:root:lang(en) .slip-name { font-size: 2.4vh; letter-spacing: 0.2vh; }
-:root:lang(en) .slip-note { font-size: 1.3vh; letter-spacing: 0.05vh; }
+:root:lang(en) { --t-display: 5.6vh; --t-title: 2.6vh; }
+:root:lang(en) .title { letter-spacing: 0.6vh; }
+:root:lang(en) .slip-name { letter-spacing: 0.2vh; }
+:root:lang(en) .slip-note { letter-spacing: 0.05vh; }
 
 /* ------------------------------------------------------------ offline helper */
 :root[data-orbit-connection="offline"] .desk { opacity: 0.45; }

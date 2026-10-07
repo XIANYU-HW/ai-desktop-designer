@@ -147,19 +147,33 @@
   });
 
   // ------------------------------------------------------------------ drawing
+  var planetLayer = null, planetBox = null;
+  function buildPlanet() {
+    var p = planet, pad = p.r * 0.2;
+    planetBox = { x: p.x - p.r - pad, y: p.y - p.r - pad, size: (p.r + pad) * 2 };
+    planetLayer = document.createElement('canvas');
+    planetLayer.width = planetLayer.height = Math.round(planetBox.size * DPR);
+    var b = planetLayer.getContext('2d');
+    b.scale(DPR, DPR);
+    b.translate(-planetBox.x, -planetBox.y);
+    var atmosphere = b.createRadialGradient(p.x, p.y, p.r * 0.96, p.x, p.y, p.r * 1.18);
+    atmosphere.addColorStop(0, 'rgba(99,200,255,0.22)'); atmosphere.addColorStop(1, 'rgba(99,200,255,0)');
+    b.fillStyle = atmosphere;
+    b.beginPath(); b.arc(p.x, p.y, p.r * 1.18, 0, Math.PI * 2); b.fill();
+    var body = b.createRadialGradient(p.x - p.r * 0.35, p.y - p.r * 0.55, p.r * 0.1, p.x, p.y, p.r);
+    body.addColorStop(0, '#1b3558'); body.addColorStop(0.55, '#0c1a30'); body.addColorStop(1, '#03070f');
+    b.fillStyle = body;
+    b.beginPath(); b.arc(p.x, p.y, p.r, 0, Math.PI * 2); b.fill();
+    b.strokeStyle = 'rgba(120,220,255,0.55)';
+    b.lineWidth = 1.5;
+    b.beginPath(); b.arc(p.x, p.y, p.r, Math.PI * 1.08, Math.PI * 1.62); b.stroke();
+  }
+
   function drawPlanet(t) {
     var p = planet;
-    var atmosphere = ctx.createRadialGradient(p.x, p.y, p.r * 0.96, p.x, p.y, p.r * 1.18);
-    atmosphere.addColorStop(0, 'rgba(99,200,255,0.22)'); atmosphere.addColorStop(1, 'rgba(99,200,255,0)');
-    ctx.fillStyle = atmosphere;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 1.18, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(planetLayer, planetBox.x, planetBox.y, planetBox.size, planetBox.size);
 
-    var body = ctx.createRadialGradient(p.x - p.r * 0.35, p.y - p.r * 0.55, p.r * 0.1, p.x, p.y, p.r);
-    body.addColorStop(0, '#1b3558'); body.addColorStop(0.55, '#0c1a30'); body.addColorStop(1, '#03070f');
-    ctx.fillStyle = body;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-
-    // cloud bands drifting slowly
+    // cloud bands and city lights are the only parts that move
     ctx.save();
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.clip();
     for (var i = 0; i < 9; i++) {
@@ -183,11 +197,6 @@
       ctx.fillRect(cx, cy, 1.4, 1.4);
     }
     ctx.restore();
-
-    // rim light
-    ctx.strokeStyle = 'rgba(120,220,255,0.55)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, Math.PI * 1.08, Math.PI * 1.62); ctx.stroke();
   }
 
   function drawRing(ring, front) {
@@ -205,11 +214,27 @@
     ctx.restore();
   }
 
+  // Glows are pre-rendered sprites: soft, cheap to draw, and identical every frame.
+  var glowCache = {};
+  function glowSprite(color) {
+    if (glowCache[color]) return glowCache[color];
+    var c = document.createElement('canvas');
+    c.width = c.height = 64;
+    var g = c.getContext('2d');
+    var grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(' + color + ',1)');
+    grad.addColorStop(0.22, 'rgba(' + color + ',0.38)');
+    grad.addColorStop(1, 'rgba(' + color + ',0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    return (glowCache[color] = c);
+  }
+
   function glowDot(x, y, radius, color, alpha) {
-    var g = ctx.createRadialGradient(x, y, 0, x, y, radius * 4);
-    g.addColorStop(0, 'rgba(' + color + ',' + alpha + ')'); g.addColorStop(1, 'rgba(' + color + ',0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(x - radius * 4, y - radius * 4, radius * 8, radius * 8);
+    var size = radius * 8;
+    ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+    ctx.drawImage(glowSprite(color), x - size / 2, y - size / 2, size, size);
+    ctx.globalAlpha = 1;
     ctx.fillStyle = 'rgba(' + color + ',' + Math.min(1, alpha * 1.4) + ')';
     ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
   }
@@ -318,6 +343,7 @@
     canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
     layout();
     buildBackdrop();
+    buildPlanet();
   }
 
   var timer = 0;
@@ -326,5 +352,5 @@
   buildStars();
   syncSatellites(5);
   syncDebris(12);
-  Orbit.loop(draw, { fps: 30 });
+  Orbit.loop(draw, { fps: 60 });   // continuous motion: 60 fps on pre-rendered layers
 })();

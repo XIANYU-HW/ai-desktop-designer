@@ -17,6 +17,10 @@
   --safe-right: 0px;
   --edge: 3.2vw;
   --u: 1.05vh;             /* one layout unit; everything scales with the screen height */
+  --t-display: calc(var(--u) * 5.4);
+  --t-title: max(12px, calc(var(--u) * 1.4));
+  --t-text: max(11px, calc(var(--u) * 1.25));
+  --t-caption: max(11px, calc(var(--u) * 1.1));
   color-scheme: dark;
 }
 :root[data-os="windows"] { --safe-left: 112px; }
@@ -24,7 +28,7 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--space); color: var(--text); }
-body { font-family: var(--mono); font-size: calc(var(--u) * 1.5); letter-spacing: 0.06em; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--mono); font-size: var(--t-text); letter-spacing: 0.06em; -webkit-font-smoothing: antialiased; }
 p { margin: 0; }
 #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 
@@ -55,29 +59,29 @@ p { margin: 0; }
 .clock-panel { top: 7vh; }
 .telemetry { top: calc(7vh + var(--u) * 19); }
 
-.label { font-size: calc(var(--u) * 1.1); color: var(--dim); letter-spacing: 0.22em; }
+.label { font-size: var(--t-caption); color: var(--dim); letter-spacing: 0.22em; }
 .sub { font-family: var(--cjk); letter-spacing: 0.1em; color: var(--dim); margin-left: 0.6em; }
-.clock { font-size: calc(var(--u) * 5.4); font-weight: 300; letter-spacing: 0.04em; line-height: 1; color: #eaf4ff; font-variant-numeric: tabular-nums; }
-.line { font-size: calc(var(--u) * 1.3); color: var(--text); }
+.clock { font-size: var(--t-display); font-weight: 300; letter-spacing: 0.04em; line-height: 1; color: #eaf4ff; font-variant-numeric: tabular-nums; }
+.line { font-size: var(--t-text); color: var(--text); }
 .dim { color: var(--dim); }
 .weather span { margin-right: 0.5em; }
 .weather [data-orbit-empty] { display: none; }
 
-.meter { display: grid; grid-template-columns: calc(var(--u) * 8.5) 1fr calc(var(--u) * 4.2); align-items: center; gap: calc(var(--u) * 1); font-size: calc(var(--u) * 1.2); }
+.meter { display: grid; grid-template-columns: max(70px, calc(var(--u) * 8.5)) 1fr max(36px, calc(var(--u) * 4.2)); align-items: center; gap: calc(var(--u) * 1); font-size: var(--t-caption); }
 .meter .name { color: var(--dim); letter-spacing: 0.18em; }
 .meter .num { text-align: right; font-variant-numeric: tabular-nums; }
 .meter .bar { height: calc(var(--u) * 0.6); background: rgba(140, 190, 255, 0.1); position: relative; overflow: hidden; }
 .meter .bar i { position: absolute; inset: 0 auto 0 0; width: calc(var(--v) * 100%); background: linear-gradient(90deg, rgba(99, 230, 255, 0.35), var(--cyan)); transition: width 1.2s ease; }
 .meter.power .bar i { background: linear-gradient(90deg, rgba(255, 181, 71, 0.35), var(--amber)); }
 .meter:has(.num[data-orbit-empty]) { display: none; }
-.counts { display: flex; gap: calc(var(--u) * 2.4); color: var(--dim); font-size: calc(var(--u) * 1.15); letter-spacing: 0.16em; margin-top: calc(var(--u) * 0.4); }
+.counts { display: flex; gap: calc(var(--u) * 2.4); color: var(--dim); font-size: var(--t-caption); letter-spacing: 0.16em; margin-top: calc(var(--u) * 0.4); }
 .counts b { color: var(--text); font-weight: 600; margin-right: 0.3em; }
 
 /* ------------------------------------------------------------ console */
 .console {
   position: fixed;
   right: calc(var(--safe-right) + var(--edge));
-  bottom: 9vh;
+  bottom: 11vh;
   display: flex;
   gap: calc(var(--u) * 1);
 }
@@ -96,9 +100,9 @@ p { margin: 0; }
   cursor: pointer;
   transition: border-color 0.3s, background 0.3s, opacity 0.4s, transform 0.3s;
 }
-.cmd .key { font-size: calc(var(--u) * 1); color: var(--dim); }
-.cmd .title { font-size: calc(var(--u) * 1.4); font-weight: 600; letter-spacing: 0.14em; }
-.cmd .sub { margin: 0; font-size: calc(var(--u) * 1.15); }
+.cmd .key { font-size: var(--t-caption); color: var(--dim); }
+.cmd .title { font-size: var(--t-title); font-weight: 600; letter-spacing: 0.14em; }
+.cmd .sub { margin: 0; font-size: var(--t-caption); }
 .cmd:hover, .cmd:focus-visible { border-color: var(--line-strong); background: rgba(16, 28, 52, 0.72); outline: none; }
 .cmd.primary { border-color: rgba(99, 230, 255, 0.4); }
 .cmd.primary .title { color: var(--cyan); }
@@ -114,9 +118,9 @@ p { margin: 0; }
 .status {
   position: fixed;
   right: calc(var(--safe-right) + var(--edge));
-  bottom: 5vh;
+  bottom: 7.4vh;
   max-width: 60vw;
-  font-size: calc(var(--u) * 1.3);
+  font-size: var(--t-text);
   color: var(--cyan);
   white-space: nowrap;
   overflow: hidden;
@@ -133,7 +137,6 @@ p { margin: 0; }
 
 @media (max-aspect-ratio: 16/10) {
   .cmd { min-width: calc(var(--u) * 11.5); }
-  .cmd .title { font-size: calc(var(--u) * 1.2); }
 }
 @media (prefers-reduced-motion: reduce) {
   .cmd.is-running, .cmd.is-armed, .status .caret { animation: none; }

@@ -66,7 +66,7 @@ p { margin: 0; }
   text-align: center;
   color: #000;
   background: var(--face);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
   box-shadow: inset -1px -1px var(--dark), inset 1px 1px var(--white), inset -2px -2px var(--shade), inset 2px 2px var(--light);
 }

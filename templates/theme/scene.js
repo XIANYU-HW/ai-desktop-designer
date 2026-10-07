@@ -58,5 +58,5 @@
 
   window.addEventListener('resize', resize);
   resize();
-  Orbit.loop(draw, { fps: 24 });   // pauses when the desktop is covered or hidden
+  Orbit.loop(draw, { fps: 60 });   // pauses when the desktop is covered or hidden; 60 fps for continuous motion
 })();

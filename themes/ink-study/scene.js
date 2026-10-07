@@ -437,5 +437,5 @@
   window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(resize, 150); });
   resize();
   seedMoving();
-  Orbit.loop(draw, { fps: 24 });
+  Orbit.loop(draw, { fps: 60 });   // slow mist steps visibly at lower rates
 })();

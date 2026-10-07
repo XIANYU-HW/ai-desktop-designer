@@ -1,0 +1,1 @@
+JetBrains Mono: from Google Fonts; license on https://fonts.google.com/specimen/JetBrains+Mono/license (most families use the SIL Open Font License 1.1)
