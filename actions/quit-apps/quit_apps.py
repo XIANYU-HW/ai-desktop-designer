@@ -72,7 +72,7 @@ PROTECTED_TOKENS = (
     "vpn", "clash", "v2ray", "shadowsocks", "trojan", "sing-box", "nekoray", "hiddify", "surge", "quantumult",
     "password", "keychain", "antivirus", "defender", "kaspersky", "avast", "bitdefender", "eset", "malwarebytes",
     "huorong", "360safe", "360tray", "hipsmain", "hipstray", "wireguard", "tailscale", "zerotier", "openvpn",
-    "terminal", "backup", "timemachine",
+    "terminal", "backup", "timemachine", "lively",
 )
 
 
@@ -371,7 +371,7 @@ def _file_description(path: str) -> str:
                 for lang, codepage in pairs + [(0x0409, 0x04B0), (0x0409, 0x04E4), (0x0804, 0x04B0)]:
                     key = "\\StringFileInfo\\%04x%04x\\FileDescription" % (lang, codepage)
                     if version_dll.VerQueryValueW(data, key, ctypes.byref(pointer), ctypes.byref(length)) and length.value:
-                        text = ctypes.wstring_at(pointer, length.value).rstrip("\x00").strip()
+                        text = ctypes.wstring_at(pointer.value, length.value).rstrip("\x00").strip()
                         if text:
                             description = text
                             break

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -587,6 +588,12 @@ def cmd_quickstart(args: argparse.Namespace) -> int:
         elif choice == "2":
             env.open_path(hosts.base_url(config["port"]) + "/gallery")
         elif choice == "3":
+            if env.IS_WINDOWS and not hosts.find_lively()["installed"] and shutil.which("winget"):
+                answer = input(out.t("  需要免费开源的 Lively Wallpaper 才能放到桌面上。现在用 winget 安装吗？[y/N] ",
+                                     "  Lively Wallpaper (free, open source) puts the page on the desktop. Install it now with winget? [y/N] "))
+                if answer.strip().lower() in ("y", "yes", "是"):
+                    subprocess.run(["winget", "install", "-e", "--id", "rocksdanister.LivelyWallpaper",
+                                    "--accept-package-agreements", "--accept-source-agreements"])
             placed = _put_on_desktop(ws, out)
             hosts.set_autostart(ws, True)
             if placed:
