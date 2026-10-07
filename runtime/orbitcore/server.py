@@ -16,6 +16,7 @@ import queue
 import re
 import secrets
 import socket
+import socketserver
 import sys
 import threading
 import time
@@ -391,7 +392,12 @@ class OrbitHTTPServer(ThreadingHTTPServer):
     def server_bind(self) -> None:
         if env.IS_WINDOWS and hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
-        super().server_bind()
+        # HTTPServer.server_bind would call socket.getfqdn(), a reverse DNS lookup that can
+        # stall for a long time on some machines. A loopback server does not need it.
+        socketserver.TCPServer.server_bind(self)
+        host, port = self.server_address[:2]
+        self.server_name = str(host)
+        self.server_port = port
 
 
 def _watch_themes(app: App) -> None:
@@ -455,6 +461,10 @@ def serve(workspace: Workspace, port: Optional[int] = None, quiet: bool = False)
             print(f"Orbit Desktop is already running at http://127.0.0.1:{port}/")
         return 0
     _setup_logging(workspace)
+    # If start-up ever stalls, write where it is stuck into the log instead of hanging silently.
+    import faulthandler
+    watchdog = open(workspace.logs_dir / "startup-stall.log", "w", encoding="utf-8")
+    faulthandler.dump_traceback_later(12, exit=False, file=watchdog)
     app = App(workspace, port)
     try:
         httpd = OrbitHTTPServer(("127.0.0.1", port), make_handler(app))
@@ -469,6 +479,8 @@ def serve(workspace: Workspace, port: Optional[int] = None, quiet: bool = False)
     server_thread = threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.5}, daemon=True)
     server_thread.start()
     log.info("serving on 127.0.0.1:%s (workspace %s)", port, workspace.root)
+    faulthandler.cancel_dump_traceback_later()
+    watchdog.close()
     if not quiet:
         print(f"Orbit Desktop is running at http://127.0.0.1:{port}/  (Ctrl+C to stop)")
     try:

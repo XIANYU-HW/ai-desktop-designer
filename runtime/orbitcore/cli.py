@@ -566,12 +566,21 @@ def cmd_quickstart(args: argparse.Namespace) -> int:
         return 1
     url = hosts.base_url(config["port"]) + "/"
     out.say(f"  桌面助手已在后台运行：{url}", f"  The helper is running in the background: {url}")
+    if not config.get("location") and sys.stdin is not None and sys.stdin.isatty():
+        try:
+            query = input(out.t("  天气用哪个城市？（中文或英文，直接回车跳过）：", "  Which city for the weather? (Enter to skip): ")).strip()
+        except (EOFError, KeyboardInterrupt):
+            query = ""
+        if query:
+            cmd_set_location(argparse.Namespace(workspace=args.workspace, query=query, pick=None))
     menu = [
         ("1", out.t("全屏预览当前主题", "Preview the current theme full screen")),
         ("2", out.t("打开主题画廊（换主题）", "Open the theme gallery (switch themes)")),
         ("3", out.t("设为桌面壁纸，并开机自动启动", "Put it on the desktop and start at sign-in")),
         ("4", out.t("设置天气城市", "Set the weather place")),
         ("5", out.t("停止桌面助手", "Stop the helper")),
+        ("6", out.t("恢复原样（取消开机启动，移除桌面主题）", "Undo everything (remove autostart and the desktop page)")),
+        ("d", out.t("诊断（遇到问题时把结果发给 AI 或作者）", "Diagnose (share the output when something is wrong)")),
         ("q", out.t("退出菜单（助手继续在后台运行）", "Leave this menu (the helper keeps running)")),
     ]
     while True:
@@ -610,6 +619,11 @@ def cmd_quickstart(args: argparse.Namespace) -> int:
             hosts.stop_background(ws)
             out.say("  已停止。", "  Stopped.")
             return 0
+        elif choice == "6":
+            cmd_uninstall(argparse.Namespace(workspace=args.workspace))
+            return 0
+        elif choice == "d":
+            cmd_doctor(argparse.Namespace(workspace=args.workspace))
         elif choice in ("q", "quit", "exit"):
             return 0
 
