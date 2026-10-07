@@ -6,6 +6,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var text = function (cn, en) { return zh ? cn : en; };
   root.lang = zh ? 'zh-CN' : 'en';
+  document.title = text('须弥 · 知识之庭', 'Sumeru · Garden of Knowledge');
   if (!zh) {
     document.querySelectorAll('[data-en]').forEach(function (el) { el.textContent = el.dataset.en; });
     document.querySelectorAll('[data-en-label]').forEach(function (el) { el.setAttribute('aria-label', el.dataset.enLabel); });

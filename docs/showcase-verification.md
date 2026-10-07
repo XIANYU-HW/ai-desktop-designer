@@ -37,7 +37,8 @@ node tests/browser_showcases.cjs
 
 Use `ORBIT_DEMO_BASE` for another local test server, `ORBIT_CHROME` for a Chrome executable, and
 `ORBIT_BROWSER_REPORT` for a report folder. The script always opens demo pages in a fresh browser
-context. `--publish-assets` additionally refreshes the four real screenshots used by README and Pages.
+context. `--publish-assets` additionally refreshes the four Chinese screenshots. The English presentation uses
+separate captures of the same pages and states with `lang=en`, listed below.
 
 The compact [acceptance record](showcase-acceptance.json) lists the assertions and capture dimensions.
 GitHub Actions independently runs the Windows/macOS/Linux matrix and browser smoke captures;
@@ -51,7 +52,33 @@ consult the commit's [Actions results](https://github.com/XIANYU-HW/ai-desktop-d
 | [Three-body comparison](showcase/threebody-comparison.png) | Actual `comparison` fixture, same viewport |
 | [Sumeru overview](../themes/genshin-sumeru/preview.png) | Actual theme, demo + snapshot, same viewport |
 | [Sumeru bloom](showcase/genshin-bloom.png) | Actual `bloom` fixture, same viewport |
+| [Three-Body overview, English](showcase/threebody-en.png) | Actual theme, `demo=1&snapshot=1&lang=en&review=600`, 1920×1080 |
+| [Three-Body comparison, English](showcase/threebody-comparison-en.png) | Same English capture with `review-state=comparison` |
+| [Sumeru overview, English](showcase/genshin-en.png) | Actual theme, `demo=1&snapshot=1&lang=en&review=600`, 1920×1080 |
+| [Sumeru bloom, English](showcase/genshin-bloom-en.png) | Same English capture with `review-state=bloom` |
 
 Background illustrations were generated with the built-in image tool; all text, widgets and controls
 in these screenshots are rendered by the theme code. See [artwork provenance and prompts](showcase-art.md).
 The source artwork has been retained. No personal desktop screenshot is published.
+
+## International presentation
+
+The default GitHub README is a complete English introduction. [简体中文](../README.zh-CN.md)
+retains the Chinese version, with matching-language screenshot and demo links in both documents.
+The public showcase has an English HTML fallback and a language switch. Selection priority is an
+explicit `lang=en` / `lang=zh-CN` URL, a saved manual choice, then the browser's primary language.
+Chinese browser languages use Simplified Chinese; other unsupported languages fall back to English.
+The switch updates text, metadata, image states and all theme links. A manual choice is also kept in
+the URL so refresh still works when browser storage is unavailable.
+
+With the same local server and Playwright setup, run the focused language check:
+
+```sh
+node tests/browser_language.cjs
+```
+
+The focused run passed 162 assertions with no page-script errors, including six viewport/language captures.
+It exercises language detection and overrides, manual switching and persistence, matching screenshots
+and links, English demo entry, narrow layouts, disabled storage and the English no-JavaScript fallback.
+The four additional English theme captures were inspected at 1920×1080: all had empty script-error,
+offscreen-text and overlapping-control reports, with no failed font or asset loads.
