@@ -13,7 +13,7 @@ Create one from the template with `orbit.py new-action <id>`, then:
 ```
 orbit.py validate-action <id>
 orbit.py run <id> preview --param folder=downloads   # read-only operations need no flag
-orbit.py run <id> run --yes               # only with the user's explicit OK, on their real machine
+orbit.py run <id> run --yes               # only within existing user authorization; test with disposable data first
 ```
 
 ## The contract
@@ -88,13 +88,23 @@ kit.main({"preview": preview, "run": run})
    `{"available": {"run": bool, "undo": bool}}` so themes can show or hide buttons.
 2. **Never delete.** Move to a folder the user can see, or to the system trash, and journal it first.
 3. **Make it undoable** where possible: write an intent line before each change and a done line after;
-   `undo` replays the journal backwards and tolerates missing or renamed files.
+   `undo` replays the journal backwards, verifies identity/content before moving, and reports changed or missing files. Track successful restores individually so failed items can be retried without touching replacements.
 4. **Never force-kill** processes and never answer an app's "save changes?" prompt.
 5. **Stay inside the user's space.** Refuse system folders, other users' folders and the whole home folder.
 6. **No system settings, no privilege prompts, no network uploads** unless that is the action's stated purpose and the user asked for it.
 7. **Be quick and quiet:** finish within the timeout, never open windows unless the operation is `open`,
    and keep `status` cheap because themes poll it every minute.
 8. **Say what happened** in the user's language, including what was skipped and why.
+
+## Verification before use
+
+A manifest is a declaration, not a sandbox: inspect custom code before executing even `preview`.
+Test the action on temporary paths or mocked apps for normal use, empty input, failure, partial
+completion and recovery. Keep actual progress/results separate from visual simulations. For an AI
+integration, verify the destination and capabilities (opening a draft, submitting it, receiving a
+reply, model selection) individually. Use supported APIs or verified entry points; never fabricate
+model options or report a message sent merely because an app opened. Test Chinese input, blur/refocus,
+failed handoff and draft recovery on the target host before claiming that input is usable.
 
 ## Cross-platform notes
 

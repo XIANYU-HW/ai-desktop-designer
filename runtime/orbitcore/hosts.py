@@ -39,10 +39,10 @@ def base_url(port: int) -> str:
 def helper_command(workspace: Workspace, windowless: bool = True) -> List[str]:
     console, quiet = env.python_executables()
     exe = quiet if windowless else console
-    command = [str(exe), str(env.ORBIT_SCRIPT)]
-    if os.environ.get("ORBIT_WORKSPACE"):
-        command += ["--workspace", str(workspace.root)]
-    return command + ["serve", "--quiet"]
+    # The child may run at sign-in with a different environment and working directory.
+    # Always keep the selected workspace, including an explicit CLI --workspace.
+    return [str(exe), str(env.ORBIT_SCRIPT), "--workspace",
+            str(workspace.root.expanduser().resolve()), "serve", "--quiet"]
 
 
 def start_background(workspace: Workspace, wait: float = 10.0) -> Tuple[bool, str]:
@@ -51,14 +51,17 @@ def start_background(workspace: Workspace, wait: float = 10.0) -> Tuple[bool, st
     if ping(port):
         return True, "already running"
     workspace.logs_dir.mkdir(parents=True, exist_ok=True)
-    log_file = open(workspace.logs_dir / "console.log", "a", encoding="utf-8")
-    kwargs: Dict[str, Any] = {"stdin": subprocess.DEVNULL, "stdout": log_file, "stderr": log_file, "close_fds": True, "cwd": str(workspace.root)}
+    kwargs: Dict[str, Any] = {"stdin": subprocess.DEVNULL, "close_fds": True, "cwd": str(workspace.root)}
     if env.IS_WINDOWS:
         kwargs["creationflags"] = env.DETACHED_PROCESS | env.CREATE_NEW_PROCESS_GROUP | env.CREATE_NO_WINDOW
     else:
         kwargs["start_new_session"] = True
-    proc = subprocess.Popen(helper_command(workspace, windowless=True), **kwargs)
-    log_file.close()
+    try:
+        with open(workspace.logs_dir / "console.log", "a", encoding="utf-8") as log_file:
+            proc = subprocess.Popen(helper_command(workspace, windowless=True),
+                                    stdout=log_file, stderr=log_file, **kwargs)
+    except OSError as exc:
+        return False, f"could not launch the helper: {exc}"
     deadline = time.time() + wait
     while time.time() < deadline:
         if ping(port):
@@ -366,6 +369,7 @@ def lively_library(info: Dict[str, Any]) -> Path:
 
 
 def install_lively(workspace: Workspace, url: str, theme_dir: Optional[Path] = None) -> Tuple[bool, str]:
+    """Create the library entry and report whether Lively accepted the request, not display verification."""
     info = find_lively()
     if not info["installed"]:
         return False, "lively-missing"
@@ -392,10 +396,15 @@ def install_lively(workspace: Workspace, url: str, theme_dir: Optional[Path] = N
     if not info.get("exe"):
         return False, "lively-store"
     try:
-        subprocess.run([info["exe"], "setwp", "--file", str(package)], timeout=30, creationflags=env.CREATE_NO_WINDOW)
+        result = subprocess.run([info["exe"], "setwp", "--file", str(package)], timeout=30,
+                                capture_output=True, text=True, creationflags=env.CREATE_NO_WINDOW)
     except (OSError, subprocess.SubprocessError) as exc:
         return False, f"lively-command-failed: {exc}"
-    return True, str(package)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()[-400:]
+        return False, f"lively-command-failed: exit {result.returncode}" + (f": {detail}" if detail else "")
+    # A zero exit status acknowledges the command; it does not verify the desktop.
+    return True, f"lively-request-accepted: {package}"
 
 
 def reload_lively() -> None:
@@ -411,15 +420,10 @@ def uninstall_lively() -> Tuple[bool, str]:
     info = find_lively()
     if not info["installed"]:
         return True, "lively-missing"
-    if info.get("exe"):
-        try:
-            subprocess.run([info["exe"], "closewp", "--monitor", "-1"], timeout=20, creationflags=env.CREATE_NO_WINDOW)
-        except (OSError, subprocess.SubprocessError):
-            pass
-    package = lively_library(info) / "wallpapers" / LIVELY_PACKAGE
-    if package.is_dir() and (package / "LivelyInfo.json").exists():
-        shutil.rmtree(package, ignore_errors=True)  # the folder Orbit created, nothing else
-    return True, str(package)
+    # closewp selects monitors, not a particular Orbit instance. Without a verified
+    # mapping it could close another wallpaper, so leave host removal to the user.
+    # Keep the library files too: they may still belong to an active wallpaper.
+    return False, "lively-manual-removal"
 
 
 def copy_to_clipboard(text: str) -> bool:
@@ -447,11 +451,19 @@ def find_plash() -> Optional[str]:
 
 
 def install_plash(url: str) -> Tuple[bool, str]:
+    """Submit a Plash URL request; success only means the OS accepted that request."""
     if not find_plash():
         return False, "plash-missing"
     query = urllib.parse.urlencode({"url": url, "title": "Orbit Desktop"}, quote_via=urllib.parse.quote)
-    subprocess.run(["open", f"plash:add?{query}"], timeout=15)
-    return True, "plash"
+    try:
+        result = subprocess.run(["open", f"plash:add?{query}"], timeout=15,
+                                capture_output=True, text=True)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return False, f"plash-command-failed: {exc}"
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()[-400:]
+        return False, f"plash-command-failed: exit {result.returncode}" + (f": {detail}" if detail else "")
+    return True, "plash-request-accepted"
 
 
 # --------------------------------------------------------------------------- start at sign-in
@@ -493,7 +505,7 @@ def set_autostart(workspace: Workspace, enabled: bool) -> None:
         try:
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, run_key, 0, winreg.KEY_SET_VALUE) as key:
                 winreg.DeleteValue(key, AUTOSTART_NAME)
-        except OSError:
+        except FileNotFoundError:
             pass  # nothing to remove
         return
     if env.IS_MAC:

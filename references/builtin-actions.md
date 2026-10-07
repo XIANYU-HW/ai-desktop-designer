@@ -1,6 +1,7 @@
 # Built-in actions
 
-Operations marked *read* never change anything and are safe to call while designing. Parameters can be
+Operations marked *read* do not move user files or close apps; the helper may maintain its own state
+directories. Use them while designing. Parameters can be
 set per user in `~/OrbitDesktop/config.json`:
 
 ```json
@@ -16,15 +17,17 @@ parameters the action declares). Test any operation from the command line:
 
 ## tidy-files · 一键收纳 (Windows, macOS, Linux)
 
-Moves loose files from a folder (the desktop by default; Windows' OneDrive-redirected desktop is
-handled) into category folders. Every run is journaled and can be undone.
+Moves local loose files from a folder into category folders on the **same filesystem volume**. The
+desktop is the default; Windows' known-folder lookup can locate a redirected desktop, which does not
+imply full OneDrive or other cloud-provider support. Every attempted run is journaled. New journals
+support checked undo; legacy journals without file identity evidence require manual review.
 
 | Op | Effect | What it does | Data |
 |---|---|---|---|
-| `status` | read | Counts loose items, checks undo | `pending`, `kept`, `source`, `library`, `last_run`, `available` |
+| `status` | read | Counts loose items, checks undo | `pending`, `kept`, `source`, `library`, `last_run`, `manual_review`, `available` |
 | `preview` | read | Lists what would move where | `pending`, `by_category`, `items[]` |
 | `run` | files | Moves them; progress per item (`item`, `category`, `status: moved/keep`) | `moved`, `skipped`, `items[]`, `can_undo` |
-| `undo` | files | Puts the most recent run back (repeat to go further back) | `restored`, `missing` |
+| `undo` | files | Restores verified items from the most recent unfinished run; retains failures for retry | `restored`, `missing`, `remaining`, `manual_review`, `items[]`, `can_undo` |
 | `open` | open | Opens the archive folder | `path` |
 
 Parameters: `source` (`desktop`, `downloads`, `documents`, or a folder inside the home folder),
@@ -32,9 +35,29 @@ Parameters: `source` (`desktop`, `downloads`, `documents`, or a folder inside th
 names), `categories` (custom list of `{name, extensions, keywords}`; keywords win over extensions),
 `group_by_month`, `include_folders` (default false), `min_age_seconds` (default 30).
 
-Always left in place: shortcuts (.lnk .url .webloc), hidden and system files, half-finished
-downloads, files changed in the last `min_age_seconds`, files another program has open, folders (unless
-`include_folders`), apps. Names never clash: a second `report.pdf` becomes `report (2).pdf`.
+Category names must be single portable folder names: no absolute paths, `..`, separators, drive
+prefixes or Windows reserved names. Archive paths are checked again before moving; category symlinks
+and junctions are rejected. Source identity is checked after scanning and immediately before a move.
+
+The scan skips recognized shortcuts (.lnk .url .webloc, etc.), hidden/system entries, partial download
+suffixes, recently modified files, symlinks, and .app/.bundle directories. Detected Windows offline,
+recall and reparse flags, macOS dataless flags, and `.icloud` placeholders are skipped without reading
+their content. This detection is conservative and **does not cover every cloud provider**. On macOS
+and Linux, available `lsof` checks skip detected open files; on Windows, locked files depend on OS
+sharing permissions. Neither mechanism proves that every in-use file has been detected.
+
+Folders stay by default. With `include_folders=true`, a folder and its descendants must pass recursive
+local-content checks; a link, detected placeholder or unreadable descendant leaves the folder in
+place. Large files/folders take longer because content is hashed. Cross-volume moves and unsupported
+file moves are skipped, with the source preserved. Existing destination names receive a suffix such
+as `report (2).pdf`.
+
+Undo checks the recorded file identity, parent directory identities and SHA-256 content digest.
+Changed or replaced items stay in the archive with an explanation. Successful restores are recorded
+individually, so a temporary failure can be retried without moving successful items twice. Older
+journals lacking this evidence are preserved and reported for manual review; they are not
+automatically undone. The checks are intended to catch ordinary concurrent edits and changed paths;
+they are not a filesystem sandbox against a hostile local process racing every check.
 
 ## quit-apps · 一键收工 (Windows, macOS)
 
@@ -66,8 +89,11 @@ reported as skipped.
 
 Opens a folder, a document or a web address: `path` accepts `{desktop}`, `{documents}`, `{downloads}`,
 `{pictures}`, `{music}`, `{videos}`, `{home}`, `~/…`, absolute paths and `https://` addresses. `create`
-makes a missing folder. Programs and scripts (.exe, .bat, .ps1, .app, .sh, …) are refused so a theme
-button can never start software.
+makes a missing folder. Known program, script and launcher extensions (.exe, .bat, .ps1, .app, .sh,
+.py, .lnk, .webloc, etc.) are refused on both the requested path and its resolved target. POSIX files
+with executable permission and paths inside .app/.workflow bundles are also refused. File opening
+still uses the OS default handler: these checks are not a sandbox for every file association, and
+ordinary documents may launch their associated application.
 
 ```html
 <button data-orbit-action="open-path" data-orbit-params='{"path": "{documents}/Projects"}'>Projects</button>

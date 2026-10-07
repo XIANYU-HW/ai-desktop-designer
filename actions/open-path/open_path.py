@@ -1,6 +1,7 @@
 """open-path: open a folder, document or web address.
 
-Programs and scripts are refused, so a theme button can never start software.
+Known program/script types, links to them and executable local files are refused.
+This is a conservative opener, not a sandbox for every possible file association.
 """
 from __future__ import annotations
 
@@ -16,6 +17,8 @@ BLOCKED_SUFFIXES = {
     ".exe", ".com", ".bat", ".cmd", ".ps1", ".psm1", ".vbs", ".vbe", ".js", ".jse", ".wsf", ".wsh", ".msi", ".msix",
     ".scr", ".pif", ".cpl", ".hta", ".lnk", ".reg", ".jar", ".app", ".command", ".sh", ".scpt", ".applescript",
     ".workflow", ".pkg", ".dmg", ".appimage", ".run", ".desktop",
+    ".py", ".pyw", ".pl", ".rb", ".psd1", ".msc", ".sct", ".gadget", ".ws",
+    ".url", ".webloc", ".inetloc", ".alias",
 }
 
 
@@ -28,8 +31,12 @@ def op_run(ctx: kit.Context) -> Dict[str, Any]:
             return {"ok": False, "message": ctx.t("只能打开网页地址。", "Only web addresses can be opened."), "data": {}}
         kit.open_path(target)
         return {"ok": True, "message": ctx.t("已在浏览器中打开", "Opened in the browser"), "data": {"url": target}}
-    path = kit.expand_path(target)
-    if path.suffix.lower() in BLOCKED_SUFFIXES:
+    requested = kit.expand_path(target)
+    path = requested.resolve()
+    blocked = (requested.suffix.lower() in BLOCKED_SUFFIXES or path.suffix.lower() in BLOCKED_SUFFIXES
+               or any(part.suffix.lower() in {".app", ".workflow"} for part in path.parents)
+               or (not kit.IS_WINDOWS and path.is_file() and os.access(path, os.X_OK)))
+    if blocked:
         return {"ok": False, "message": ctx.t("为了安全，主题按钮不能启动程序或脚本。", "For safety, theme buttons cannot start programs or scripts."), "data": {}}
     if not path.exists():
         if ctx.param("create", False) and not path.suffix:

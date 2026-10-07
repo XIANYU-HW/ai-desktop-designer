@@ -51,6 +51,8 @@ jobs:
             python runtime/orbit.py snapshot "$t" --out "previews/$t-zh-night.png" --query "lang=zh&daypart=night&weather=rain"
             python runtime/orbit.py snapshot "$t" --out "previews/$t-1366.png" --size 1366x768
           done
+          python runtime/orbit.py new-theme ci-starter
+          python runtime/orbit.py review ci-starter --quick --out previews/starter-review
           python runtime/orbit.py stop
 
       - name: Show helper logs after a failure

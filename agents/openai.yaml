@@ -1,0 +1,4 @@
+interface:
+  display_name: "Orbit Desktop"
+  short_description: "Design integrated desktops with custom visuals and actions"
+  default_prompt: "Use $orbit-desktop to build a desktop with my chosen visuals, motion, widgets and actions, then verify the result while preserving my existing setup."
