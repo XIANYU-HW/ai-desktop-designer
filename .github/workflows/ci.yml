@@ -53,6 +53,13 @@ jobs:
           done
           python runtime/orbit.py stop
 
+      - name: Show helper logs after a failure
+        if: failure()
+        shell: bash
+        run: |
+          for f in "$ORBIT_WORKSPACE"/logs/*.log; do echo "== $f"; tail -n 60 "$f" || true; done
+          (lsof -nP -iTCP:47321 -sTCP:LISTEN || netstat -ano | grep 47321 || true) 2>/dev/null
+
       - name: Upload previews
         if: runner.os != 'Linux'
         uses: actions/upload-artifact@v4

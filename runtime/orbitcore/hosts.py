@@ -57,14 +57,27 @@ def start_background(workspace: Workspace, wait: float = 10.0) -> Tuple[bool, st
         kwargs["creationflags"] = env.DETACHED_PROCESS | env.CREATE_NEW_PROCESS_GROUP | env.CREATE_NO_WINDOW
     else:
         kwargs["start_new_session"] = True
-    subprocess.Popen(helper_command(workspace, windowless=True), **kwargs)
+    proc = subprocess.Popen(helper_command(workspace, windowless=True), **kwargs)
     log_file.close()
     deadline = time.time() + wait
     while time.time() < deadline:
         if ping(port):
             return True, "started"
+        if proc.poll() is not None:  # the helper exited: say why
+            return False, _last_log_lines(workspace) or f"the helper exited with code {proc.returncode}"
         time.sleep(0.25)
     return False, f"the helper did not answer; see {workspace.logs_dir / 'orbit.log'}"
+
+
+def _last_log_lines(workspace: Workspace, count: int = 6) -> str:
+    lines: List[str] = []
+    for name in ("orbit.log", "console.log"):
+        try:
+            text = (workspace.logs_dir / name).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        lines += [l for l in text.splitlines() if l.strip()][-count:]
+    return "\n".join(lines[-count:])
 
 
 def stop_background(workspace: Workspace) -> bool:
@@ -353,14 +366,16 @@ def set_autostart(workspace: Workspace, enabled: bool) -> None:
         import winreg  # type: ignore
 
         line = subprocess.list2cmdline(command)
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE) as key:
-            if enabled:
+        run_key = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        if enabled:
+            with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, run_key, 0, winreg.KEY_SET_VALUE) as key:
                 winreg.SetValueEx(key, AUTOSTART_NAME, 0, winreg.REG_SZ, line)
-            else:
-                try:
-                    winreg.DeleteValue(key, AUTOSTART_NAME)
-                except OSError:
-                    pass
+            return
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, run_key, 0, winreg.KEY_SET_VALUE) as key:
+                winreg.DeleteValue(key, AUTOSTART_NAME)
+        except OSError:
+            pass  # nothing to remove
         return
     if env.IS_MAC:
         plist = _launch_agent_path()

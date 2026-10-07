@@ -30,10 +30,16 @@ class WindDownForRealTest(unittest.TestCase):
     def setUp(self):
         if env.IS_WINDOWS:
             self.only = ["notepad.exe"]
-            subprocess.Popen(["notepad.exe"])
+            self.proc = subprocess.Popen(["notepad.exe"])
+            self.addCleanup(self.stop_test_app)
         else:
             self.only = ["com.apple.calculator"]
             subprocess.run(["open", "-g", "-a", "Calculator"], check=True)
+
+    def stop_test_app(self):
+        if self.proc.poll() is None:  # only the Notepad this test started, if the test was skipped
+            self.proc.kill()
+        self.proc.wait(10)
 
     def wait_listed(self, h, present, seconds=15):
         deadline = time.time() + seconds

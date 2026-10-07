@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import secrets
+import socket
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -34,6 +35,24 @@ actions/      你自己的功能（动作）；规则同上
 state/        功能的记录，例如一键收纳的撤销日志
 logs/         运行日志
 """
+
+
+def port_is_free(port: int) -> bool:
+    probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        probe.bind(("127.0.0.1", port))
+        return True
+    except OSError:
+        return False
+    finally:
+        probe.close()
+
+
+def find_free_port(start: int = DEFAULT_PORT, attempts: int = 60) -> int:
+    for port in range(start, start + attempts):
+        if port_is_free(port):
+            return port
+    return start
 
 
 class Workspace:
@@ -76,6 +95,8 @@ class Workspace:
             readme.write_text(WORKSPACE_README, encoding="utf-8")
         config = self.load()
         changed = not self.config_path.exists()
+        if changed and not port_is_free(int(config["port"])):
+            config["port"] = find_free_port(int(config["port"]) + 1)  # another program already uses the default
         if language:
             config["language"] = language
             changed = True
